@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 )
 
 type path struct {
@@ -54,12 +55,13 @@ type coor struct {
 type maze struct {
 	area []row
 	coor
+	edge int
 }
 
 func (m maze) String() string {
 	var lines []string
 	for _, row := range m.area {
-		lines = append(lines, row.String())
+		lines = append(lines, row.String()[m.edge:])
 	}
 	// prev := lines[0]
 	// var res = []string{string(prev)}
@@ -99,7 +101,7 @@ func basicMaze(width, height int) maze {
 	}
 
 	res[height][width] = fillerCell(false, false)
-	return maze{res, coor{width, height}}
+	return maze{res, coor{width, height}, 2}
 }
 
 func (m maze) posDir() []coor {
@@ -180,11 +182,12 @@ func (m *maze) addExits() {
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable
 func main() {
-	m := basicMaze(30, 30)
+	// m := basicMaze(30, 30)
+	m := basicMaze(10, 10)
 	for i := 0; i < 100000; i++ {
 		m.update()
-		// time.Sleep(time.Second)
+		time.Sleep(time.Second)
+		fmt.Println(m)
 	}
 	m.addExits()
-	fmt.Println(m)
 }
