@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-	"time"
 )
 
 type path struct {
@@ -171,8 +170,8 @@ func (m *maze) update() {
 }
 
 func (m *maze) exitIn(col int) {
-	row := rand.Intn(len(m.area))
-	m.area[row][col].x.crossable = true
+	row := rand.Intn(len(m.area) - 1)
+	m.area[row+1][col].x.crossable = true
 }
 
 func (m *maze) addExits() {
@@ -182,12 +181,22 @@ func (m *maze) addExits() {
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable
 func main() {
-	// m := basicMaze(30, 30)
-	m := basicMaze(10, 10)
+	m := basicMaze(30, 30)
+	// m := basicMaze(40, 40)
 	for i := 0; i < 100000; i++ {
 		m.update()
-		time.Sleep(time.Second)
-		fmt.Println(m)
+		// time.Sleep(time.Second / 5)
+		// fmt.Println(m)
 	}
 	m.addExits()
+	fmt.Println(m)
 }
+
+// game idea:
+// for every 2 moves you make; the enemy gets to make one move toward you.
+// but you are constained by the walls of the maze while your enemy can move through walls
+// the goal is to get to the treasure the enemey is protecting
+// Enemy: }< (red)
+// Player: .\/_ (brown)
+// grass: \/ (green)
+// hanging: ^" (these will be green)
