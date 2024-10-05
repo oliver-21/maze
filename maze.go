@@ -21,9 +21,10 @@ import (
 
 // - Don't include maze size option - overcomplicating navigation. And no good way to deal with screen sizeing with larger mazes withough giving up resolution or trying to resize / spawn a new window which would be confusing to the player
 type Maze struct {
-	area []row
+	theme colorTheme
+	area  []row
 	coor[int]
-	edge          int
+	fedge, ledge  int
 	width, height int
 	scale         int
 	font          *text.GoTextFace

@@ -56,23 +56,25 @@ func (m *Maze) UpdateSize() {
 }
 
 var (
-	//go:embed JetBrainsMono_Regular.ttf
+	//go:embed fonts/CamingoCode_Regular.ttf
 	fontSorce       []byte
 	cascidiaMono, _ = text.NewGoTextFaceSource(bytes.NewReader(fontSorce))
 )
 
 func basicMaze(width, height int) Maze {
-	firstLine := rowOnly(width + 1)
+	firstLine := rowOnly(width + 2)
 	firstLine[0] = fillerCell(true, true)
+	firstLine[len(firstLine)-1] = fillerCell(true, true)
 
 	m := Maze{
-		area: []row{firstLine},
-		coor: coor[int]{width, height},
+		area:  []row{firstLine},
+		coor:  coor[int]{width, height},
+		theme: randColorRange(),
 		font: &text.GoTextFace{
 			Source: cascidiaMono,
 			Size:   20,
 		},
-		edge:  0,
+		ledge: 1,
 		scale: 22,
 		max:   coor[int]{width + 1, height + 1},
 	}
@@ -164,7 +166,7 @@ func (m *Maze) exitIn(col int) {
 	if col == 0 {
 		bridgeCol = 0
 	} else {
-		bridgeCol = col + 1
+		bridgeCol = min(len(m.area[row])-1, col+1)
 	}
 	m.area[row][bridgeCol].y.crossable = false
 	m.area[row+1][bridgeCol].y.crossable = false
@@ -172,12 +174,11 @@ func (m *Maze) exitIn(col int) {
 
 func (m *Maze) addExits() {
 	m.exitIn(0)
-	m.exitIn(len(m.area[0]) - 1)
+	m.exitIn(len(m.area[0]) - 2)
 }
 
 func genMaze() *Maze {
 	m := basicMaze(20, 20)
-	// m := basicMaze(40, 40)
 	for i := 0; i < 100000; i++ {
 		m.moveCenter()
 		// time.Sleep(time.Second / 5)

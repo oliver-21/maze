@@ -32,7 +32,8 @@ func (r row) String() string {
 func (m Maze) String() string {
 	var lines []string
 	for _, row := range m.area {
-		lines = append(lines, row.String()[m.edge:])
+		str := row.String()
+		lines = append(lines, str[m.fedge:len(str)-m.ledge])
 	}
 	// prev := lines[0]
 	// var res = []string{string(prev)}
