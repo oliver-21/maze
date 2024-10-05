@@ -37,5 +37,5 @@ func (m Maze) String() string {
 	// prev := lines[0]
 	// var res = []string{string(prev)}
 	// for _, row := range
-	return strings.Join(lines, "\n")
+	return strings.Join(lines, "\n") + "\n"
 }

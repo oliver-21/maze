@@ -8,6 +8,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+func shuffle[T any](arr []T) {
+	for i := range arr {
+		next := rand.Intn(i + 1)
+		arr[i], arr[next] = arr[next], arr[i]
+	}
+}
+
 type path struct {
 	crossable bool
 	direction int8 // +1 for forwards -1 for backwards
@@ -28,7 +35,7 @@ type coor struct {
 }
 
 func fillerCell(x, y bool) cell {
-	return cell{path{x, 1}, path{y, 1}, internal{false, genItems()}}
+	return cell{path{x, 1}, path{y, 1}, internal{}}
 }
 
 // directions will always by > or V
@@ -58,28 +65,27 @@ func basicMaze(width, height int) Maze {
 	firstLine := rowOnly(width + 1)
 	firstLine[0] = fillerCell(true, true)
 
-	var res = []row{
-		firstLine,
-	}
-
-	for i := height; i != 0; i-- {
-		line := rowOnly(width + 1)
-		line[0] = downOnly
-		line[len(line)-1] = downOnly
-		res = append(res, line)
-	}
-
-	res[height][width] = fillerCell(false, false)
 	m := Maze{
-		area: res,
+		area: []row{firstLine},
 		coor: coor{width, height},
 		font: &text.GoTextFace{
 			Source: cascidiaMono,
 			Size:   20,
 		},
-		edge:  2,
+		edge:  0,
 		scale: 22,
+		max:   coor{width + 1, height + 1},
 	}
+
+	for i := 1; i <= height; i++ {
+		line := rowOnly(width + 2)
+		m.area = append(m.area, line)
+		line[0] = downOnly
+		line[len(line)-2] = downOnly
+		line[len(line)-1] = fillerCell(true, true)
+	}
+
+	m.area[height][width] = fillerCell(false, false)
 	m.UpdateSize()
 	return m
 }
@@ -96,10 +102,10 @@ func (m Maze) posDir() []coor {
 	if y > 1 {
 		res = append(res, coor{0, -1})
 	}
-	if x < len(m.area[0])-1 {
+	if x < m.max.x-1 {
 		res = append(res, coor{1, 0})
 	}
-	if y < len(m.area)-1 {
+	if y < m.max.y-1 {
 		res = append(res, coor{0, 1})
 	}
 	return res
@@ -152,7 +158,16 @@ func (m *Maze) moveCenter() {
 
 func (m *Maze) exitIn(col int) {
 	row := rand.Intn(len(m.area) - 1)
-	m.area[row+1][col].x.crossable = true
+	cell := &m.area[row+1][col]
+	cell.x.crossable = true
+	var bridgeCol int
+	if col == 0 {
+		bridgeCol = 0
+	} else {
+		bridgeCol = col + 1
+	}
+	m.area[row][bridgeCol].y.crossable = false
+	m.area[row+1][bridgeCol].y.crossable = false
 }
 
 func (m *Maze) addExits() {
@@ -169,5 +184,6 @@ func genMaze() *Maze {
 		// fmt.Println(m)
 	}
 	m.addExits()
+	m.fillWithGrass()
 	return &m
 }

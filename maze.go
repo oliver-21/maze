@@ -21,6 +21,7 @@ type Maze struct {
 	width, height int
 	scale         int
 	font          *text.GoTextFace
+	max           coor // max position won't go past this
 }
 
 func (m *Maze) Update() error {
