@@ -30,8 +30,8 @@ type cell struct {
 
 type row []cell
 
-type coor struct {
-	x, y int
+type coor[T any] struct {
+	x, y T
 }
 
 func fillerCell(x, y bool) cell {
@@ -67,14 +67,14 @@ func basicMaze(width, height int) Maze {
 
 	m := Maze{
 		area: []row{firstLine},
-		coor: coor{width, height},
+		coor: coor[int]{width, height},
 		font: &text.GoTextFace{
 			Source: cascidiaMono,
 			Size:   20,
 		},
 		edge:  0,
 		scale: 22,
-		max:   coor{width + 1, height + 1},
+		max:   coor[int]{width + 1, height + 1},
 	}
 
 	for i := 1; i <= height; i++ {
@@ -90,33 +90,33 @@ func basicMaze(width, height int) Maze {
 	return m
 }
 
-func (m Maze) posDir() []coor {
+func (m Maze) posDir() []coor[int] {
 	var (
-		res []coor
+		res []coor[int]
 		x   = m.x
 		y   = m.y
 	)
 	if x > 1 {
-		res = append(res, coor{-1, 0})
+		res = append(res, coor[int]{-1, 0})
 	}
 	if y > 1 {
-		res = append(res, coor{0, -1})
+		res = append(res, coor[int]{0, -1})
 	}
 	if x < m.max.x-1 {
-		res = append(res, coor{1, 0})
+		res = append(res, coor[int]{1, 0})
 	}
 	if y < m.max.y-1 {
-		res = append(res, coor{0, 1})
+		res = append(res, coor[int]{0, 1})
 	}
 	return res
 }
 
-func (m *Maze) add(c coor) {
+func (m *Maze) add(c coor[int]) {
 	m.x += c.x
 	m.y += c.y
 }
 
-func (m *Maze) modify(move coor, callback func(p *path)) {
+func (m *Maze) modify(move coor[int], callback func(p *path)) {
 	curr := m.coor
 	switch {
 	case move.x == -1:

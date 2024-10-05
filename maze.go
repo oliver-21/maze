@@ -1,3 +1,8 @@
+// TODO:
+// - add player and controler
+// - black out areas that are not yet reached
+// - If I have extra time: add coins mode and monster mode
+
 package main
 
 // $Env:GOOS = 'js'
@@ -14,14 +19,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+// - Don't include maze size option - overcomplicating navigation. And no good way to deal with screen sizeing with larger mazes withough giving up resolution or trying to resize / spawn a new window which would be confusing to the player
 type Maze struct {
 	area []row
-	coor
+	coor[int]
 	edge          int
 	width, height int
 	scale         int
 	font          *text.GoTextFace
-	max           coor // max position won't go past this
+	max           coor[int] // max position won't go past this
+
 }
 
 func (m *Maze) Update() error {
@@ -33,8 +40,9 @@ func (g *Maze) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func (m *Maze) Draw(screen *ebiten.Image) {
-	text.Draw(screen, m.String(), m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
 	m.DrawStuff(screen)
+	text.Draw(screen, m.String(), m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
+
 }
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable

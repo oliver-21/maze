@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"math"
 	"math/rand/v2"
 	"strings"
 
@@ -12,6 +13,20 @@ import (
 // type fcoor struct {
 // 	x, y float64
 // }
+
+func lerpChannal(a, b uint8, factor float64) uint8 {
+	return uint8(min(float64(a)+math.Abs(float64(a-b))*factor, math.MaxUint8))
+}
+
+func randLerpColor(a, b color.RGBA) color.RGBA {
+	factor := rand.Float64()
+	return color.RGBA{
+		lerpChannal(a.R, b.R, factor),
+		lerpChannal(a.G, b.G, factor),
+		lerpChannal(a.A, b.B, factor),
+		lerpChannal(a.A, b.A, factor),
+	}
+}
 
 func (m *Maze) textSize(s string) (float64, float64) {
 	return text.Measure(s, m.font, float64(m.scale))
@@ -31,12 +46,9 @@ var (
 	}
 )
 
-var grassColor = color.RGBA{12, 71, 6, 255}
-var berrieColor = color.RGBA{92, 16, 102, 255}
-
 func plants(chars string, outOf float64) string {
 	ans := ""
-	for i := 0; i < 3; i++ {
+	for i := 0; i < len(cell{}.String()); i++ {
 		if rand.Float64()*outOf < 1 {
 			ans += string(chars[rand.IntN(len(chars))])
 		} else {
@@ -46,7 +58,11 @@ func plants(chars string, outOf float64) string {
 	return ans
 }
 
-func (m *Maze) genItems(c coor) {
+var grassColor = color.RGBA{12, 71, 6, 255}
+var dryGrassColor = color.RGBA{32, 41, 32, 255}
+var berrieColor = color.RGBA{92, 16, 102, 255}
+
+func (m *Maze) genItems(c coor[int]) {
 	cpy := *m
 	cpy.coor = c
 	var hasDown, hasUp bool
@@ -66,7 +82,7 @@ func (m *Maze) genItems(c coor) {
 	var new []item
 	if hasDown {
 		grass := plants(`\|/`, 5)
-		new = append(new, item{grass, grassColor})
+		new = append(new, item{grass, randLerpColor(grassColor, dryGrassColor)})
 	}
 	if hasUp {
 		new = append(new, item{plants(`"''`, 15), berrieColor})
@@ -83,7 +99,7 @@ func (m *Maze) genItems(c coor) {
 func (m *Maze) fillWithGrass() {
 	for i, line := range m.area[1:] {
 		for j := range line[1:int(m.max.x)] {
-			m.genItems(coor{j + 1, i + 1})
+			m.genItems(coor[int]{j + 1, i + 1})
 		}
 	}
 }
@@ -98,7 +114,7 @@ type internal struct {
 	background []item
 }
 
-func (m *Maze) DrawItem(screen *ebiten.Image, pos coor, item item) {
+func (m *Maze) DrawItem(screen *ebiten.Image, pos coor[int], item item) {
 	x, y := m.blockToImageCoords(pos.x, pos.y)
 	// fmt.Println(":", x, ",", y)
 	// bounds := screen.Bounds()
@@ -121,7 +137,7 @@ func (m *Maze) DrawItem(screen *ebiten.Image, pos coor, item item) {
 		})
 }
 
-func (m *Maze) DrawItems(screen *ebiten.Image, pos coor, int internal) {
+func (m *Maze) DrawItems(screen *ebiten.Image, pos coor[int], int internal) {
 	for _, item := range int.background {
 		m.DrawItem(screen, pos, item)
 	}
@@ -133,7 +149,7 @@ func (m *Maze) DrawItems(screen *ebiten.Image, pos coor, int internal) {
 func (m *Maze) DrawStuff(screen *ebiten.Image) {
 	for y, row := range m.area {
 		for x, cell := range row {
-			m.DrawItems(screen, coor{x, y}, cell.internal)
+			m.DrawItems(screen, coor[int]{x, y}, cell.internal)
 		}
 	}
 }
