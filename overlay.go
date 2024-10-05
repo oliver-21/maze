@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"image"
 	"image/color"
 	"math/rand/v2"
 
@@ -8,8 +10,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
+// type fcoor struct {
+// 	x, y float64
+// }
+
 func (m *Maze) blockToImageCoords(x, y int) (float64, float64) {
 	blockWidth, blockHight := text.Measure(cell{}.String(), m.font, float64(m.scale))
+	fmt.Print(x, " ", y)
 	return float64(x) * blockWidth, float64(y) * blockHight
 }
 
@@ -39,21 +46,29 @@ type internal struct {
 	background []item
 }
 
-func DrawItem(screen *ebiten.Image, pos coor, item item)
+func (m *Maze) DrawItem(screen *ebiten.Image, pos coor, item item) {
+	x, y := m.blockToImageCoords(pos.x, pos.y)
+	fmt.Println(":", x, ",", y)
+	bounds := screen.Bounds()
+	min := bounds.Min
+	max := bounds.Max
+	area := screen.SubImage(image.Rect(min.X+int(x), min.Y+int(y), max.X, max.Y)).(*ebiten.Image)
+	text.Draw(area, item.string, m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
+}
 
-func DrawItems(screen *ebiten.Image, pos coor, int internal) {
+func (m *Maze) DrawItems(screen *ebiten.Image, pos coor, int internal) {
 	for _, item := range int.background {
-		DrawItem(screen, pos, item)
+		m.DrawItem(screen, pos, item)
 	}
 	if int.isCoin {
-		DrawItem(screen, pos, coin)
+		m.DrawItem(screen, pos, coin)
 	}
 }
 
 func (m *Maze) DrawStuff(screen *ebiten.Image) {
 	for y, row := range m.area {
 		for x, cell := range row {
-			DrawItems(screen, coor{x, y}, cell.internal)
+			m.DrawItems(screen, coor{x, y}, cell.internal)
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"image"
 	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -31,7 +32,9 @@ func (m *Maze) Draw(screen *ebiten.Image) {
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable
 func main() {
+	go soundtrack()
 	data := genMaze()
+	ebiten.SetWindowIcon([]image.Image{get("icon.png")})
 
 	ebiten.SetWindowSize(data.width, data.height)
 	if err := ebiten.RunGame(data); err != nil {
