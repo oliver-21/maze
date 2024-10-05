@@ -1,195 +1,42 @@
 package main
 
 import (
-	"fmt"
-	"math/rand"
-	"strings"
+	"log"
+
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/text/v2"
 )
 
-type path struct {
-	crossable bool
-	direction int8 // +1 for forwards -1 for backwards
-}
-
-type cell struct {
-	//    | (x)>
-	// ---
-	// (y)
-	x, y path
-}
-
-func (s cell) String() string {
-	var res []byte
-	if s.y.crossable {
-		res = []byte("   ")
-	} else {
-		res = []byte("___")
-	}
-
-	if !s.x.crossable {
-		res[2] = '|'
-	}
-
-	return string(res)
-}
-
-type row []cell
-
-func (r row) Array() []byte {
-	var line []byte
-	for _, c := range r {
-		line = append(line, []byte(c.String())...)
-	}
-	return line
-}
-
-func (r row) String() string {
-	return string(r.Array())
-}
-
-type coor struct {
-	x, y int
-}
-
-type maze struct {
+type Maze struct {
 	area []row
 	coor
-	edge int
+	edge          int
+	width, height int
+	scale         int
+	font          *text.GoTextFace
 }
 
-func (m maze) String() string {
-	var lines []string
-	for _, row := range m.area {
-		lines = append(lines, row.String()[m.edge:])
-	}
-	// prev := lines[0]
-	// var res = []string{string(prev)}
-	// for _, row := range
-	return strings.Join(lines, "\n")
+func (m *Maze) Update() error {
+	return nil
 }
 
-func fillerCell(x, y bool) cell {
-	return cell{path{x, 1}, path{y, 1}}
+func (g *Maze) Layout(outsideWidth, outsideHeight int) (int, int) {
+	return g.width, g.height
 }
 
-// directions will always by > or V
-func rowOnly(x int) row {
-	line := make(row, x)
-	for i := range line {
-		line[i] = fillerCell(true, false)
-	}
-	return line
-}
-
-// directions will always by > or V
-var downOnly = fillerCell(false, true)
-
-func basicMaze(width, height int) maze {
-	firstLine := rowOnly(width + 1)
-	firstLine[0] = fillerCell(true, true)
-
-	var res = []row{
-		firstLine,
-	}
-
-	for i := height; i != 0; i-- {
-		line := rowOnly(width + 1)
-		line[0] = downOnly
-		line[len(line)-1] = downOnly
-		res = append(res, line)
-	}
-
-	res[height][width] = fillerCell(false, false)
-	return maze{res, coor{width, height}, 2}
-}
-
-func (m maze) posDir() []coor {
-	var (
-		res []coor
-		x   = m.x
-		y   = m.y
-	)
-	if x > 1 {
-		res = append(res, coor{-1, 0})
-	}
-	if y > 1 {
-		res = append(res, coor{0, -1})
-	}
-	if x < len(m.area[0])-1 {
-		res = append(res, coor{1, 0})
-	}
-	if y < len(m.area)-1 {
-		res = append(res, coor{0, 1})
-	}
-	return res
-}
-
-func (m *maze) add(c coor) {
-	m.x += c.x
-	m.y += c.y
-}
-
-func (m *maze) modify(move coor, update func(p *path)) {
-	curr := m.coor
-	switch {
-	case move.x == -1:
-		curr.x--
-	case move.y == -1:
-		curr.y--
-	}
-	cell := &m.area[curr.y][curr.x]
-	if move.x != 0 {
-		update(&cell.x)
-	} else {
-		update(&cell.y)
-	}
-}
-
-func (m *maze) deletePointing() {
-	for _, pos := range m.posDir() {
-		correct := pos.x + pos.y
-		m.modify(pos, func(p *path) {
-			if p.crossable && correct == int(p.direction) {
-				p.crossable = false
-			}
-		})
-	}
-}
-
-func (m *maze) update() {
-	possibilities := m.posDir()
-	next := possibilities[rand.Intn(len(possibilities))]
-	// fmt.Println(possibilities, ":", m.coor)
-	correct := next.x + next.y
-	m.modify(next, func(p *path) {
-		p.crossable = true
-		p.direction = int8(correct)
-	})
-	m.add(next)
-	m.deletePointing()
-}
-
-func (m *maze) exitIn(col int) {
-	row := rand.Intn(len(m.area) - 1)
-	m.area[row+1][col].x.crossable = true
-}
-
-func (m *maze) addExits() {
-	m.exitIn(0)
-	m.exitIn(len(m.area[0]) - 1)
+func (m *Maze) Draw(screen *ebiten.Image) {
+	text.Draw(screen, m.String(), m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
+	m.DrawStuff(screen)
 }
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable
 func main() {
-	m := basicMaze(30, 30)
-	// m := basicMaze(40, 40)
-	for i := 0; i < 100000; i++ {
-		m.update()
-		// time.Sleep(time.Second / 5)
-		// fmt.Println(m)
+	data := genMaze()
+
+	ebiten.SetWindowSize(data.width, data.height)
+	if err := ebiten.RunGame(data); err != nil {
+		log.Fatal(err)
 	}
-	m.addExits()
-	fmt.Println(m)
 }
 
 // game idea:
@@ -200,3 +47,4 @@ func main() {
 // Player: .\/_ (brown)
 // grass: \/ (green)
 // hanging: ^" (these will be green)
+// -O
