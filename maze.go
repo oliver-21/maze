@@ -97,11 +97,12 @@ func (m *Maze) Draw(screen *ebiten.Image) {
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable
 func main() {
-	// go soundtrack()
+	go soundtrack()
 	data := genMaze()
 	ebiten.SetWindowTitle("Maze Bat")
 	// 16x16, 32x32 and 48x48 , get("icon48.png")
 	ebiten.SetWindowIcon([]image.Image{get("icon.png")})
+	// fmt.Println(data.width, data.height) // TODO: remove
 
 	ebiten.SetWindowSize(data.width, data.height)
 	if err := ebiten.RunGame(data); err != nil {

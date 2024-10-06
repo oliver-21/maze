@@ -6,9 +6,9 @@ import (
 	"image"
 	"image/png"
 	"io/fs"
+	"log"
 	fsPath "path"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/gopxl/beep"
@@ -74,51 +74,28 @@ func decode(file fs.File, name string) (s beep.StreamSeekCloser, format beep.For
 	}
 }
 
-//go:embed sounds
+//go:embed theme.mp3
 var embedThemeFile embed.FS
-var buffers = make(map[string]*beep.Buffer)
-var bufMu sync.Mutex
 
-func init() {
-	bufMu.Lock()
-	defer bufMu.Unlock()
-	go fs.WalkDir(embedThemeFile, ".", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			println(err.Error())
-		}
-		println(path)
-		data, _ := embedThemeFile.Open(path)
-		streamer, format, err := decode(data, path)
+func getSound() *beep.Buffer {
+	name := "theme.mp3"
+	data, _ := embedThemeFile.Open(name)
+	streamer, format, err := decode(data, name)
 
-		if err != nil {
-			return nil
-		}
-		buffer := beep.NewBuffer(format)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer streamer.Close()
+	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 
-		defer streamer.Close()
-		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
-		buffer.Append(streamer)
-		buffers[path] = buffer
-		return nil
-	})
-}
-
-func runSound(file string) {
-	bufMu.Lock()
-	defer bufMu.Unlock()
-	buffer := buffers["sounds/"+file]
-	segment := buffer.Streamer(0, buffer.Len())
-	speaker.Play(beep.Seq(segment, beep.Callback(func() {
-		// done <- true
-	})))
-
+	buffer := beep.NewBuffer(format)
+	buffer.Append(streamer)
+	streamer.Close()
+	return buffer
 }
 
 func soundtrack() {
-	bufMu.Lock()
-	defer bufMu.Unlock()
-	buffer := buffers["sounds/theme.mp3"]
+	buffer := getSound()
 	done := make(chan bool)
 	for {
 		segment := buffer.Streamer(0, buffer.Len())

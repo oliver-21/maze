@@ -93,7 +93,7 @@ func basicMaze(width, height int) Maze {
 			speed: 1,
 		},
 	}
-	m.addMessage("Maze Bat - By Oliver Day for ldJam 56", 4)
+	m.addMessage("Maze Bat - By Oliver Day for Ludum Dare 56", 4)
 	// m.addMessage("Requires Keyboard; Arrows or WASD to move; Enter to replay", 4)
 	m.player.coor = coor[float64]{0, float64(m.entry) + 1}
 	for i := 1; i <= height; i++ {

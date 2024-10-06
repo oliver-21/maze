@@ -16,6 +16,7 @@ type player struct {
 	speed float64 // max 1.0
 	time  float64
 	tilt  float64
+	goal  coor[int]
 }
 
 type key struct {
@@ -84,18 +85,23 @@ func (p *player) Draw(screen *ebiten.Image, m *Maze) {
 	m.drawText(screen, coor[float64]{x - sep, y + tilt}, " ^", batColor)
 }
 
-func move(pos *float64, movement float64) {
-	next := *pos + movement
-	descrit := math.Round(*pos)
-	println(descrit)
-	// check if the pos and next are on different sides of the discrite
-	if (*pos < descrit) != (next < descrit) {
-		*pos = descrit
+func isWithin(a, b, dx float64) bool {
+	return math.Abs(a-b) <= dx
+}
+
+func move(pos *float64, goal int, movement float64) {
+	if isWithin(*pos, float64(goal), movement) {
+		*pos = float64(goal)
 	} else {
-		*pos += movement
+		if *pos < float64(goal) {
+			*pos += movement
+		} else {
+			*pos -= movement
+		}
 	}
 	// println(*pos)
 }
+
 func (p *player) Update(m *Maze) {
 	dx, dy := keyMovement()
 	// fmt.Println(dx, dy)
@@ -117,31 +123,42 @@ func (p *player) Update(m *Maze) {
 	p.speed *= 1.1
 	p.speed = min(p.speed, 0.1)
 
-	move(&p.coor.x, p.speed*float64(p.dir.x))
-	move(&p.coor.y, p.speed*float64(p.dir.y))
+	move(&p.coor.x, p.goal.x, p.speed)
+	move(&p.coor.y, p.goal.y, p.speed)
 
 	if p.coor.x == math.Round(p.coor.x) || p.coor.y == math.Round(p.coor.y) {
 		// m.area[(p.coor.y)][(p.coor.x)]
-
-		cpy := *m
-		cpy.coor = coor[int]{int(p.coor.x), int(p.coor.y)}
-		// println(c.x, ":", c.y)
 		prev := p.dir
 		p.dir = coor[int]{}
-		for _, pos := range m.posDir() {
-			if pos == p.next {
-				cpy.modify(pos, func(pa *path) {
-					if pa.crossable {
-						p.dir = p.next
-						if p.dir != prev {
-							p.speed = 0.02
-						}
-					}
-				})
+		if m.canMoveInDir(coor[int]{int(p.coor.x), int(p.coor.y)}, p.next) {
+			p.dir = p.next
+			p.goal.x += p.dir.x
+			p.goal.y += p.dir.y
+			if p.dir != prev {
+				p.speed = 0.02
 			}
 		}
-		// godump.Dump(p)
+		p.next = coor[int]{}
 	}
+}
+
+func (m *Maze) canMoveInDir(coor coor[int], dir coor[int]) bool {
+	cpy := *m
+	cpy.coor = coor
+	// println(c.x, ":", c.y)
+	canMove := false
+	for _, pos := range m.posDir() {
+		if pos == dir {
+			cpy.modify(pos, func(pa *path) {
+				if pa.crossable {
+					canMove = true
+				}
+			})
+		}
+	}
+	return canMove
+	// godump.Dump(p)
+
 }
 
 func (m *Maze) hasWon() bool {
