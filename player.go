@@ -13,10 +13,17 @@ type player struct {
 	dir  coor[int]
 	next coor[int]
 
-	speed float64 // max 1.0
-	time  float64
-	tilt  float64
-	goal  coor[int]
+	speed    float64 // max 1.0
+	time     float64
+	tilt     float64
+	goal     coor[int]
+	wingtime float64
+}
+
+func (p *player) set(x, y int) {
+	p.x = float64(x)
+	p.y = float64(y)
+	p.goal = coor[int]{x, y}
 }
 
 type key struct {
@@ -76,7 +83,7 @@ func (p *player) Draw(screen *ebiten.Image, m *Maze) {
 	const nearnessEffect = 0.7
 	x, y := m.blockToImageCoords(p.x, p.y)
 	y += tiltEffect
-	movement := (math.Sin(p.time) + 1) / 2
+	movement := (math.Sin(p.wingtime) + 1) / 2
 	y += movement * 4
 	sep := movement * movement * batMovmentRatio
 	tilt := p.tilt * tiltEffect
@@ -102,13 +109,18 @@ func move(pos *float64, goal int, movement float64) {
 	// println(*pos)
 }
 
+const maxSpeed = 0.1
+
 func (p *player) Update(m *Maze) {
 	dx, dy := keyMovement()
 	// fmt.Println(dx, dy)
 	// update posible direction up to decision boundery
+	wingDx := p.speed * 5
+	const maxWingSpeed = maxSpeed * 5
 	if dx != 0 || dy != 0 {
 		p.next = coor[int]{dx, dy}
 	}
+
 	if p.dir.x != 0 {
 		p.tilt += float64(p.dir.x) * 0.7
 		p.tilt = forceTo1(p.tilt)
@@ -116,17 +128,22 @@ func (p *player) Update(m *Maze) {
 		p.tilt *= 0.9
 		// set to 1 if close enough
 		if p.tilt < 0.15 && p.tilt > -0.15 {
-			p.tilt = 1
+			p.tilt = 0
+		}
+		if p.dir.y < 0 {
+			wingDx = maxWingSpeed + wingDx
+		} else if p.dir.y > 0 {
+			wingDx = maxWingSpeed - wingDx
 		}
 	}
-	p.time += 0.3
-	p.speed *= 1.1
-	p.speed = min(p.speed, 0.1)
+	p.wingtime += wingDx
+	p.speed *= 1.05
+	p.speed = min(p.speed, maxSpeed)
 
 	move(&p.coor.x, p.goal.x, p.speed)
 	move(&p.coor.y, p.goal.y, p.speed)
 
-	if p.coor.x == math.Round(p.coor.x) || p.coor.y == math.Round(p.coor.y) {
+	if p.coor.x == float64(p.goal.x) && p.coor.y == float64(p.goal.y) {
 		// m.area[(p.coor.y)][(p.coor.x)]
 		prev := p.dir
 		p.dir = coor[int]{}
