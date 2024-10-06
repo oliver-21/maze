@@ -61,6 +61,16 @@ var (
 	cascidiaMono, _ = text.NewGoTextFaceSource(bytes.NewReader(fontSorce))
 )
 
+func (m *Maze) addMessage(mes string, timout int) {
+	m.messages = append(m.messages, message{timout * 60, mes})
+}
+func (m *Maze) setMessage(mes string, timout int) {
+	m.messages = []message{{timout * 60, mes}}
+}
+func (m *Maze) getMessage() string {
+	return m.message.string
+}
+
 func basicMaze(width, height int) Maze {
 	firstLine := rowOnly(width + 2)
 	firstLine[0] = fillerCell(true, true)
@@ -76,9 +86,16 @@ func basicMaze(width, height int) Maze {
 		},
 		ledge: 1,
 		scale: 22,
+		entry: rand.Intn(height),
+		exit:  rand.Intn(height),
 		max:   coor[int]{width + 1, height + 1},
+		player: player{
+			speed: 1,
+		},
 	}
-
+	m.addMessage("Maze Bat - By Oliver Day for ldJam 56", 4)
+	// m.addMessage("Requires Keyboard; Arrows or WASD to move; Enter to replay", 4)
+	m.player.coor = coor[float64]{0, float64(m.entry) + 1}
 	for i := 1; i <= height; i++ {
 		line := rowOnly(width + 2)
 		m.area = append(m.area, line)
@@ -158,8 +175,7 @@ func (m *Maze) moveCenter() {
 	m.deletePointing()
 }
 
-func (m *Maze) exitIn(col int) {
-	row := rand.Intn(len(m.area) - 1)
+func (m *Maze) exitIn(col int, row int) {
 	cell := &m.area[row+1][col]
 	cell.x.crossable = true
 	var bridgeCol int
@@ -173,18 +189,19 @@ func (m *Maze) exitIn(col int) {
 }
 
 func (m *Maze) addExits() {
-	m.exitIn(0)
-	m.exitIn(len(m.area[0]) - 2)
+	m.exitIn(0, m.entry)
+	m.exitIn(len(m.area[0])-2, m.exit)
 }
 
 func genMaze() *Maze {
 	m := basicMaze(20, 20)
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 50000; i++ {
 		m.moveCenter()
 		// time.Sleep(time.Second / 5)
 		// fmt.Println(m)
 	}
 	m.addExits()
 	m.fillWithGrass()
+	m.AddCoins()
 	return &m
 }

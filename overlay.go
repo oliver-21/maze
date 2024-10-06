@@ -2,6 +2,7 @@ package main
 
 import (
 	"image/color"
+	"math"
 	"math/rand/v2"
 	"strings"
 
@@ -64,19 +65,13 @@ func (m *Maze) textSize(s string) (float64, float64) {
 	return text.Measure(s, m.font, float64(m.scale))
 }
 
-func (m *Maze) blockToImageCoords(x, y int) (float64, float64) {
+func (m *Maze) blockToImageCoords(x, y float64) (float64, float64) {
 	blockWidth, _ := m.textSize(cell{}.String())
 	// fmt.Print(x, " ", y)
 	edgWidth, _ := m.textSize(strings.Repeat(" ", m.fedge))
 	// return float64(x)*blockWidth - edgWidth, float64(y) * blockHight
-	return float64(x)*blockWidth - edgWidth, float64(y) * float64(m.scale)
+	return x*blockWidth - edgWidth, y * float64(m.scale)
 }
-
-var (
-	coin = item{
-		"O", color.RGBA{231, 245, 37, 255},
-	}
-)
 
 func plants(chars string, outOf float64) string {
 	ans := ""
@@ -91,6 +86,8 @@ func plants(chars string, outOf float64) string {
 }
 
 var berrieColor = color.RGBA{92, 16, 102, 255}
+
+// var batColor = color.RGBA{48, 44, 44, 255}
 
 func (m *Maze) genItems(c coor[int]) {
 	cpy := *m
@@ -115,8 +112,13 @@ func (m *Maze) genItems(c coor[int]) {
 		//TODO: randomly decide new color scheme
 		new = append(new, item{grass, randLerpColor(m.theme.a, m.theme.b)})
 	}
+	// add in ^
 	if hasUp {
+		// if rand.IntN(6) == 0 { // TODO finde some other decoration
+		// 	new = append(new, item{plants("^", 8), batColor}) // yes, these are bats
+		// } else {
 		new = append(new, item{plants(`"''`+"`", 15), berrieColor})
+		// }
 	}
 	for _, e := range new {
 		if !cell.x.crossable {
@@ -141,24 +143,18 @@ type item struct {
 }
 
 type internal struct {
-	isCoin     bool
+	isCoin     [2]bool
 	background []item
 }
 
-func (m *Maze) DrawItem(screen *ebiten.Image, pos coor[int], item item) {
-	x, y := m.blockToImageCoords(pos.x, pos.y)
-	// fmt.Println(":", x, ",", y)
-	// bounds := screen.Bounds()
-	// min := bounds.Min
-	// max := bounds.Max
-	// area := screen.SubImage(image.Rect(min.X+int(x), min.Y+int(y), max.X, max.Y)).(*ebiten.Image)
+func (m *Maze) drawText(screen *ebiten.Image, pos coor[float64], str string, colour color.RGBA) {
 	place := &ebiten.DrawImageOptions{}
-	color := item.color
+	color := colour
 	place.ColorScale.Scale(float32(color.R)/255, float32(color.G)/255, float32(color.B)/255, 1)
-	place.GeoM.Translate(x, y)
+	place.GeoM.Translate(pos.x, pos.y)
 	text.Draw(
 		screen,
-		item.string,
+		str,
 		m.font,
 		&text.DrawOptions{
 			LayoutOptions: text.LayoutOptions{
@@ -166,14 +162,24 @@ func (m *Maze) DrawItem(screen *ebiten.Image, pos coor[int], item item) {
 			},
 			DrawImageOptions: *place,
 		})
+
+}
+
+func (m *Maze) DrawItem(screen *ebiten.Image, pos coor[int], item item) {
+	x, y := m.blockToImageCoords(float64(pos.x), float64(pos.y))
+	m.drawText(screen, coor[float64]{x, y}, item.string, item.color)
 }
 
 func (m *Maze) DrawItems(screen *ebiten.Image, pos coor[int], int internal) {
 	for _, item := range int.background {
 		m.DrawItem(screen, pos, item)
 	}
-	if int.isCoin {
-		m.DrawItem(screen, pos, coin)
+	var coinColor = color.RGBA{231, 245, 37, 255}
+	if int.isCoin[0] {
+		m.DrawItem(screen, pos, item{"O", coinColor})
+	}
+	if int.isCoin[1] {
+		m.DrawItem(screen, pos, item{" O", coinColor})
 	}
 }
 
@@ -182,5 +188,27 @@ func (m *Maze) DrawStuff(screen *ebiten.Image) {
 		for x, cell := range row {
 			m.DrawItems(screen, coor[int]{x, y}, cell.internal)
 		}
+	}
+}
+
+func (m *Maze) spawnPoints() []coor[int] {
+	var res []coor[int]
+	for y, row := range m.area[1:m.max.y] {
+		for x := range row[1:m.max.x] {
+			res = append(res, coor[int]{x + 1, y + 1})
+		}
+	}
+	return res
+}
+
+const coinFactor = 0.3
+
+func (m *Maze) AddCoins() {
+	points := m.spawnPoints()
+	shuffle(points)
+	m.numCoins = int(math.Sqrt(float64(len(points))) * coinFactor)
+	for _, e := range points[:m.numCoins] {
+		m.area[e.y][e.x].isCoin[rand.IntN(2)] = true
+		// fmt.Println(e.x, " ", e.y)
 	}
 }
