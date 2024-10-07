@@ -29,8 +29,8 @@ type playState int
 const (
 	playing playState = iota
 	won
-	paused
-	alreadyWon
+	end
+	options
 )
 
 type message struct {
@@ -56,37 +56,20 @@ type Maze struct {
 	playState
 	messages []message
 	message
-	offset     float64
-	sinceEnter int
+	offset    float64
+	prevEnter bool
 }
 
-func (m *Maze) Update() error {
-	// m.mu.Lock()
-	// defer m.mu.Unlock()
-	if ebiten.IsKeyPressed(ebiten.KeyEnter) && m.sinceEnter > 60 {
-		if m.playState != won {
-			m.setMessage("Are you sure you want to restart? (Y/N)", 1000000)
-			m.playState = paused
-		} else {
-			*m = *genMaze()
-			m.setMessage("New Game", 2)
-		}
-		m.sinceEnter = 0
-	}
-	if m.playState == paused {
-		if ebiten.IsKeyPressed(ebiten.KeyY) {
-			*m = *genMaze()
-			m.setMessage("New Game", 2)
-			m.playState = playing
-		}
-		if ebiten.IsKeyPressed(ebiten.KeyN) {
-			m.playState = playing
-			m.setMessage("", 0)
-		}
+func (m *Maze) allowEscape() {
+	if ebiten.IsKeyPressed(ebiten.KeyEnter) && !m.prevEnter {
+		m.playState = options
+		m.prevEnter = true
 	} else {
-		m.player.HandleCoins(m)
-		m.player.Update(m)
+		m.prevEnter = false
 	}
+}
+
+func (m *Maze) messageUpdate() {
 	if m.timout <= 0 {
 		if len(m.messages) != 0 {
 			m.message = m.messages[0]
@@ -95,15 +78,50 @@ func (m *Maze) Update() error {
 			m.message.string = ""
 		}
 	}
+	m.timout--
+}
 
-	if m.playState == playing && m.hasWon() {
-		m.playState = won
+func (m *Maze) Regenerate() {
+	message := "New Game"
+	if m.hasWon() {
+		message = "You reached the next level"
+	}
+	*m = *genMaze()
+	m.setMessage(message, 2)
+}
+
+func (m *Maze) Update() error {
+	// m.mu.Lock()
+	// defer m.mu.Unlock()
+
+	m.player.HandleCoins(m)
+	m.player.Update(m)
+	m.allowEscape()
+
+	if m.playState == options {
+		if m.hasWon() {
+			m.Regenerate()
+		} else {
+			m.setMessage("Are you sure you want to start a new game? (Y/N)", 0.1)
+			if ebiten.IsKeyPressed(ebiten.KeyY) {
+				m.Regenerate()
+				m.playState = playing
+			}
+			if ebiten.IsKeyPressed(ebiten.KeyN) {
+				m.setMessage("", 0)
+				m.playState = playing
+			}
+		}
+	}
+	if m.hasWon() {
 		m.setMessage("You Won", 5)
 		m.addMessage("Enter to replay", 5)
 	}
+	if m.playState == end && m.hasWon() {
+		m.Regenerate()
+	}
+	m.messageUpdate()
 	m.offset += 1
-	m.timout--
-	m.sinceEnter++
 	return nil
 }
 

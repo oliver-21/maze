@@ -94,7 +94,7 @@ func (p *player) Draw(screen *ebiten.Image, m *Maze) {
 }
 
 func isWithin(a, b, dx float64) bool {
-	return math.Abs(a-b) < math.Abs(dx)
+	return math.Abs(a-b) <= math.Abs(dx)
 }
 
 const maxSpeed = 0.1
@@ -135,7 +135,7 @@ func (p *player) HandleCoins(m *Maze) {
 }
 
 func move(pos *float64, goal int, movement float64) {
-	if isWithin(*pos, float64(goal), movement) {
+	if isWithin(*pos, float64(goal), movement+0.1) {
 		*pos = float64(goal)
 	} else {
 		if *pos < float64(goal) {
@@ -149,6 +149,9 @@ func move(pos *float64, goal int, movement float64) {
 
 func (p *player) Update(m *Maze) {
 	dx, dy := keyMovement()
+	if dx != 0 || dy != 0 {
+		m.playState = playing
+	}
 	// fmt.Println(dx, dy)
 	// update posible direction up to decision boundery
 	wingDx := p.speed * 5
@@ -187,6 +190,7 @@ func (p *player) Update(m *Maze) {
 		// 	return
 		// }
 		if p.coor.x >= float64(len(m.area[0]))-1.5 && p.next.x > 0 {
+			m.playState = end
 			p.next.x = 0
 		}
 		if m.canMoveInDir(coor[int]{int(p.coor.x), int(p.coor.y)}, p.next) {

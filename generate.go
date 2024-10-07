@@ -66,8 +66,8 @@ var (
 func (m *Maze) addMessage(mes string, timout int) {
 	m.messages = append(m.messages, message{timout * 60, mes})
 }
-func (m *Maze) setMessage(mes string, timout int) {
-	m.message = message{timout * 60, mes}
+func (m *Maze) setMessage(mes string, timout float32) {
+	m.message = message{int(timout * 60), mes}
 	m.messages = []message{}
 }
 func (m *Maze) getMessage() string {
