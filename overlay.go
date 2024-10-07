@@ -137,6 +137,32 @@ func (m *Maze) fillWithGrass() {
 	}
 }
 
+func (m *Maze) spawnItems(str string, col colorTheme, factor float64) {
+	for i, line := range m.area[1:] {
+		for j := range line[1:int(m.max.x)] {
+			// println(c.x, ":", c.y)
+			coo := coor[int]{j + 1, i + 1}
+			if !m.canMoveInDir(coo, coor[int]{0, 1}) {
+				cell := m.area[coo.y][coo.x]
+				cellStr := plants(str, factor)
+				if !cell.x.crossable {
+					cellStr = cellStr[:len(str)-1]
+
+				}
+				cell.internal.background = append(
+					cell.internal.background,
+					item{
+						cellStr,
+						randLerpColor(col.a, col.b),
+					},
+				)
+				m.area[coo.y][coo.x] = cell
+				// godump.Dump(cell)
+			}
+		}
+	}
+}
+
 type item struct {
 	string
 	color color.RGBA

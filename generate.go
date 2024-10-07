@@ -206,6 +206,23 @@ func genMaze() *Maze {
 		// time.Sleep(time.Second / 5)
 		// fmt.Println(m)
 	}
+	if rand.Intn(2) == 0 {
+		m.spawnItems("nm", // bolders
+			colorTheme{
+				color.RGBA{68, 69, 68, 255},
+				color.RGBA{61, 47, 44, 255},
+			},
+			40,
+		)
+	} else {
+		m.spawnItems("vix", // cursed grass
+			colorTheme{
+				color.RGBA{100, 7, 102, 255},
+				color.RGBA{29, 7, 102, 255},
+			},
+			40,
+		)
+	}
 	m.addExits()
 	m.fillWithGrass()
 	m.AddCoins()
