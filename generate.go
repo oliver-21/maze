@@ -67,7 +67,7 @@ func (m *Maze) addMessage(mes string, timout int) {
 	m.messages = append(m.messages, message{timout * 60, mes})
 }
 func (m *Maze) setMessage(mes string, timout int) {
-	m.message = message{timout, mes}
+	m.message = message{timout * 60, mes}
 	m.messages = []message{}
 }
 func (m *Maze) getMessage() string {
@@ -146,10 +146,17 @@ func (m *Maze) modify(move coor[int], callback func(p *path)) {
 	case move.y == -1:
 		curr.y--
 	}
-	cell := &m.area[curr.y][curr.x]
+	if curr.y < 0 || curr.y >= len(m.area) {
+		return
+	}
+	row := m.area[curr.y]
+	if curr.x < 0 || curr.x >= len(row) {
+		return
+	}
+	cell := &row[curr.x]
 	if move.x != 0 {
 		callback(&cell.x)
-	} else {
+	} else if move.y != 0 {
 		callback(&cell.y)
 	}
 }
@@ -196,6 +203,7 @@ func (m *Maze) addExits() {
 	m.exitIn(len(m.area[0])-2, m.exit)
 	m.area[m.exit+1][len(m.area[0])-1].isCoin[1] = true
 	m.area[m.exit+1][len(m.area[0])-1].coinColor = color.RGBA{19, 4, 217, 255}
+	m.area[m.exit][len(m.area[0])-1].x.crossable = false
 	m.numCoins++
 }
 

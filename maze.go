@@ -56,13 +56,14 @@ type Maze struct {
 	playState
 	messages []message
 	message
-	offset float64
+	offset     float64
+	sinceEnter int
 }
 
 func (m *Maze) Update() error {
 	// m.mu.Lock()
 	// defer m.mu.Unlock()
-	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+	if ebiten.IsKeyPressed(ebiten.KeyEnter) && m.sinceEnter > 60 {
 		if m.playState != won {
 			m.setMessage("Are you sure you want to restart? (Y/N)", 1000000)
 			m.playState = paused
@@ -70,6 +71,7 @@ func (m *Maze) Update() error {
 			*m = *genMaze()
 			m.setMessage("New Game", 2)
 		}
+		m.sinceEnter = 0
 	}
 	if m.playState == paused {
 		if ebiten.IsKeyPressed(ebiten.KeyY) {
@@ -97,9 +99,11 @@ func (m *Maze) Update() error {
 	if m.playState == playing && m.hasWon() {
 		m.playState = won
 		m.setMessage("You Won", 5)
+		m.addMessage("Enter to replay", 5)
 	}
 	m.offset += 1
 	m.timout--
+	m.sinceEnter++
 	return nil
 }
 
@@ -116,12 +120,10 @@ func (m *Maze) Draw(screen *ebiten.Image) {
 	// cx /= 2
 	// cy /= 2
 	// darkenOutside(screen, coor[float64]{pos.x + cx, pos.y + cy}, m.max)
-
 	x, _ := m.textSize(cell{}.String())
 	m.drawText(screen, coor[float64]{x, 0}, m.getMessage(), color.RGBA{255, 255, 255, 255})
 	x, _ = m.blockToImageCoords(float64(m.max.x-1), 0)
 	m.drawText(screen, coor[float64]{x, 0}, fmt.Sprintf("%3v", m.score), color.RGBA{255, 255, 255, 255})
-
 }
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable

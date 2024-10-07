@@ -6,7 +6,6 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/yassinebenaid/godump"
 )
 
 type player struct {
@@ -154,9 +153,9 @@ func (p *player) Update(m *Maze) {
 	// update posible direction up to decision boundery
 	wingDx := p.speed * 5
 	const maxWingSpeed = maxSpeed * 5
-	if dx != 0 || dy != 0 {
-		p.next = coor[int]{dx, dy}
-	}
+	// if dx != 0 || dy != 0 {
+	p.next = coor[int]{dx, dy}
+	// }
 
 	if p.dir.x != 0 {
 		p.tilt += float64(p.dir.x) * 0.7
@@ -184,10 +183,16 @@ func (p *player) Update(m *Maze) {
 		// m.area[(p.coor.y)][(p.coor.x)]
 		// prev := p.dir
 		p.dir = coor[int]{}
+		// if p.goal.x+p.dir.x <= 0 {
+		// 	return
+		// }
+		if p.coor.x >= float64(len(m.area[0]))-1.5 && p.next.x > 0 {
+			p.next.x = 0
+		}
 		if m.canMoveInDir(coor[int]{int(p.coor.x), int(p.coor.y)}, p.next) {
-			if p.next != p.dir {
-				godump.Dump(p.goal)
-			}
+			// if p.next != p.dir {
+			// 	godump.Dump(p.goal)
+			// }
 			p.dir = p.next
 			p.goal.x += p.dir.x
 			p.goal.y += p.dir.y

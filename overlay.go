@@ -2,7 +2,6 @@ package main
 
 import (
 	"image/color"
-	"math"
 	"math/rand/v2"
 	"strings"
 
@@ -237,7 +236,7 @@ const coinFactor = 0.3
 func (m *Maze) AddCoins() {
 	points := m.spawnPoints()
 	shuffle(points)
-	numCoins := int(math.Sqrt(float64(len(points))) * coinFactor)
+	numCoins := 2 // int(math.Sqrt(float64(len(points))) * coinFactor)
 	for _, e := range points[:numCoins] {
 		coin := &m.area[e.y][e.x]
 		coin.isCoin[rand.IntN(2)] = true
