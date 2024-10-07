@@ -29,7 +29,7 @@ type playState int
 const (
 	playing playState = iota
 	won
-	lost
+	paused
 	alreadyWon
 )
 
@@ -60,8 +60,24 @@ type Maze struct {
 
 func (m *Maze) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
-		*m = *genMaze()
-		m.setMessage("New Game", 2)
+		if m.playState != won {
+			m.setMessage("Are you sure you want to restart? (Y/N)", 1000000)
+			m.playState = paused
+		} else {
+			*m = *genMaze()
+			m.setMessage("New Game", 2)
+		}
+	}
+	if m.playState == paused {
+		if ebiten.IsKeyPressed(ebiten.KeyY) {
+			*m = *genMaze()
+			m.setMessage("New Game", 2)
+			m.playState = playing
+		}
+		if ebiten.IsKeyPressed(ebiten.KeyN) {
+			m.playState = playing
+			m.setMessage("", 0)
+		}
 	}
 	m.offset += 1
 	m.player.HandleCoins(m)

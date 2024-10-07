@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/yassinebenaid/godump"
 )
 
 type player struct {
@@ -13,11 +14,12 @@ type player struct {
 	dir  coor[int]
 	next coor[int]
 
-	speed    float64 // max 1.0
-	time     float64
-	tilt     float64
-	goal     coor[int]
-	wingtime float64
+	speed     float64 // max 1.0
+	time      float64
+	tilt      float64
+	goal      coor[int]
+	wingtime  float64
+	lastMoved int
 }
 
 func (p *player) set(x, y int) {
@@ -93,7 +95,44 @@ func (p *player) Draw(screen *ebiten.Image, m *Maze) {
 }
 
 func isWithin(a, b, dx float64) bool {
-	return math.Abs(a-b) < dx
+	return math.Abs(a-b) < math.Abs(dx)
+}
+
+const maxSpeed = 0.1
+
+func (m *Maze) coinFromLoc(place coor[int]) *cell {
+	// fmt.Println(m.area[place.y][place.x/3])
+	return &m.area[place.y][place.x/3]
+}
+
+func (m *Maze) hasCoin(place coor[int]) bool {
+	cell := m.coinFromLoc(place)
+	// fmt.Println(place.x, place.y, cell.isCoin)
+	loc := place.x % 3 // cellLen
+	return loc < len(cell.isCoin) && cell.isCoin[loc]
+}
+
+func (m *Maze) deleteCoin(place coor[int]) {
+	cell := m.coinFromLoc(place)
+	loc := place.x % cellLen
+	cell.isCoin[loc] = false
+}
+
+// DO NOT MODIFY
+var cellLen = len(cell{}.String())
+
+func (p *player) HandleCoins(m *Maze) {
+	// print(cellLen)
+	curr := p.coor
+	curr.x *= float64(cellLen)
+	end := math.Ceil(curr.x + 2)
+	for i := int(math.Floor(curr.x)); i < int(end); i++ {
+		spot := coor[int]{i, int(curr.y)}
+		if m.hasCoin(spot) {
+			m.deleteCoin(spot)
+			m.score++
+		}
+	}
 }
 
 func move(pos *float64, goal int, movement float64) {
@@ -107,43 +146,6 @@ func move(pos *float64, goal int, movement float64) {
 		}
 	}
 	// println(*pos)
-}
-
-const maxSpeed = 0.1
-
-func (m *Maze) coinFromLoc(place coor[int]) *cell {
-	return &m.area[place.y][place.x/cellLen]
-}
-
-func (m *Maze) hasCoin(place coor[int]) bool {
-	cell := m.coinFromLoc(place)
-	loc := place.x % cellLen
-	if loc < len(cell.isCoin) {
-		return cell.isCoin[loc]
-	}
-	return false
-}
-
-func (m *Maze) deleteCoin(place coor[int]) {
-	cell := m.coinFromLoc(place)
-	loc := place.x % cellLen
-	cell.isCoin[loc] = false
-}
-
-// DO NOT MODIFY
-var cellLen = len(cell{}.String())
-
-func (p *player) HandleCoins(m *Maze) {
-	curr := p.coor
-	curr.x *= float64(cellLen)
-	end := math.Ceil(curr.x + 2)
-	for i := int(math.Floor(curr.x)); i < int(end); i++ {
-		spot := coor[int]{int(curr.x), int(curr.y) + i}
-		if m.hasCoin(spot) {
-			m.deleteCoin(spot)
-			m.score++
-		}
-	}
 }
 
 func (p *player) Update(m *Maze) {
@@ -183,12 +185,16 @@ func (p *player) Update(m *Maze) {
 		// prev := p.dir
 		p.dir = coor[int]{}
 		if m.canMoveInDir(coor[int]{int(p.coor.x), int(p.coor.y)}, p.next) {
+			if p.next != p.dir {
+				godump.Dump(p.goal)
+			}
 			p.dir = p.next
 			p.goal.x += p.dir.x
 			p.goal.y += p.dir.y
 			// if p.dir != prev {
 			// 	p.speed = 0.05
 			// }
+			p.lastMoved = 3
 		}
 		p.next = coor[int]{}
 	}

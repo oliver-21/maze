@@ -172,6 +172,7 @@ func (m *Maze) DrawItem(screen *ebiten.Image, pos coor[int], item item) {
 }
 
 func (m *Maze) DrawItems(screen *ebiten.Image, pos coor[int], int internal) {
+	// godump.Dump(pos)
 	for _, item := range int.background {
 		m.DrawItem(screen, pos, item)
 	}
