@@ -19,6 +19,7 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -40,6 +41,7 @@ type message struct {
 
 // - Don't include maze size option - overcomplicating navigation. And no good way to deal with screen sizeing with larger mazes withough giving up resolution or trying to resize / spawn a new window which would be confusing to the player
 type Maze struct {
+	mu    sync.Mutex
 	theme colorTheme
 	area  []row
 	coor[int]
@@ -59,6 +61,8 @@ type Maze struct {
 }
 
 func (m *Maze) Update() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
 		if m.playState != won {
 			m.setMessage("Are you sure you want to restart? (Y/N)", 1000000)
@@ -78,10 +82,10 @@ func (m *Maze) Update() error {
 			m.playState = playing
 			m.setMessage("", 0)
 		}
+	} else {
+		m.player.HandleCoins(m)
+		m.player.Update(m)
 	}
-	m.offset += 1
-	m.player.HandleCoins(m)
-	m.player.Update(m)
 	if m.timout <= 0 {
 		if len(m.messages) != 0 {
 			m.message = m.messages[0]
@@ -95,6 +99,7 @@ func (m *Maze) Update() error {
 		m.playState = won
 		m.setMessage("You Won", 5)
 	}
+	m.offset += 1
 	m.timout--
 	return nil
 }

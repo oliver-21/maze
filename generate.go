@@ -195,7 +195,7 @@ func (m *Maze) addExits() {
 	m.exitIn(0, m.entry)
 	m.exitIn(len(m.area[0])-2, m.exit)
 	m.area[m.exit+1][len(m.area[0])-1].isCoin[1] = true
-	m.area[m.exit+1][len(m.area[0])-1].coinColor = color.RGBA{40, 29, 191, 255}
+	m.area[m.exit+1][len(m.area[0])-1].coinColor = color.RGBA{19, 4, 217, 255}
 	m.numCoins++
 }
 
