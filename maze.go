@@ -51,8 +51,10 @@ type Maze struct {
 }
 
 func (m *Maze) allowEscape() {
-	if ebiten.IsKeyPressed(ebiten.KeyEnter) && !m.prevEnter {
-		m.playState = options
+	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+		if !m.prevEnter {
+			m.playState = options
+		}
 		m.prevEnter = true
 	} else {
 		m.prevEnter = false

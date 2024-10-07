@@ -16,7 +16,7 @@ type rainSorce struct {
 	data   string
 }
 
-var waterColor = color.RGBA{39, 39, 97, 255}
+var waterColor = color.RGBA{54, 54, 117, 255}
 
 const underScoreOffset = 2
 
