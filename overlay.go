@@ -26,7 +26,7 @@ func randColorRange() colorTheme {
 		},
 		{ // grass
 			color.RGBA{12, 71, 6, 255},
-			color.RGBA{44, 46, 34, 255},
+			color.RGBA{84, 78, 77, 255},
 		},
 		{ // autumn
 			color.RGBA{74, 33, 25, 255},
@@ -169,6 +169,7 @@ type item struct {
 type internal struct {
 	isCoin     [2]bool
 	coinColor  color.RGBA
+	rainSorce  *rainSorce
 	background []item
 }
 

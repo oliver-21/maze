@@ -96,7 +96,8 @@ func basicMaze(width, height int) Maze {
 			speed: 1,
 		},
 	}
-	m.addMessage("Maze Bat - By Oliver Day for Ludum Dare 56", 4)
+	m.addMessage("Maze Bat - By Oliver Day for Ludum Dare 56", 3)
+	m.addMessage("Enter to start a new game", 3)
 	// m.addMessage("Requires Keyboard; Arrows or WASD to move; Enter to replay", 4)
 	m.player.set(0, m.entry+1)
 	for i := 1; i <= height; i++ {
@@ -201,10 +202,30 @@ func (m *Maze) exitIn(col int, row int) {
 func (m *Maze) addExits() {
 	m.exitIn(0, m.entry)
 	m.exitIn(len(m.area[0])-2, m.exit)
-	m.area[m.exit+1][len(m.area[0])-1].isCoin[1] = true
+	m.area[m.exit+1][len(m.area[0])-1].isCoin[0] = true
 	m.area[m.exit+1][len(m.area[0])-1].coinColor = color.RGBA{19, 4, 217, 255}
 	m.area[m.exit][len(m.area[0])-1].x.crossable = false
 	m.numCoins++
+}
+
+func (m *Maze) extraItems() {
+	if rand.Intn(3) == 0 {
+		m.spawnItems("vix", // cursed grass
+			colorTheme{
+				color.RGBA{100, 7, 102, 255},
+				color.RGBA{29, 7, 102, 255},
+			},
+			40,
+		)
+	} else {
+		m.spawnItems("nm", // bolders
+			colorTheme{
+				color.RGBA{68, 69, 68, 255},
+				color.RGBA{61, 47, 44, 255},
+			},
+			40,
+		)
+	}
 }
 
 func genMaze() *Maze {
@@ -214,23 +235,8 @@ func genMaze() *Maze {
 		// time.Sleep(time.Second / 5)
 		// fmt.Println(m)
 	}
-	if rand.Intn(2) == 0 {
-		m.spawnItems("nm", // bolders
-			colorTheme{
-				color.RGBA{68, 69, 68, 255},
-				color.RGBA{61, 47, 44, 255},
-			},
-			40,
-		)
-	} else {
-		m.spawnItems("vix", // cursed grass
-			colorTheme{
-				color.RGBA{100, 7, 102, 255},
-				color.RGBA{29, 7, 102, 255},
-			},
-			40,
-		)
-	}
+	m.addRain()
+	m.extraItems()
 	m.addExits()
 	m.fillWithGrass()
 	m.AddCoins()

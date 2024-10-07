@@ -46,6 +46,8 @@ type Maze struct {
 	message
 	offset    float64
 	prevEnter bool
+
+	rain []*rainSorce
 }
 
 func (m *Maze) allowEscape() {
@@ -71,17 +73,19 @@ func (m *Maze) messageUpdate() {
 
 func (m *Maze) Regenerate() {
 	message := "New Game"
+	enterPressed := m.prevEnter
 	if m.hasWon() {
 		message = "Reached the next level"
 	}
 	*m = *genMaze()
+	m.prevEnter = enterPressed
 	m.setMessage(message, 2)
 }
 
 func (m *Maze) Update() error {
 	// m.mu.Lock()
 	// defer m.mu.Unlock()
-
+	m.updateRain()
 	m.player.HandleCoins(m)
 	m.player.Update(m)
 	m.allowEscape()
@@ -118,6 +122,7 @@ func (g *Maze) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func (m *Maze) Draw(screen *ebiten.Image) {
+	m.drawRain(screen)
 	m.DrawStuff(screen)
 	text.Draw(screen, m.String(), m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
 	m.player.Draw(screen, m)
