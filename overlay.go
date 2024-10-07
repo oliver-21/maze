@@ -108,7 +108,6 @@ func (m *Maze) genItems(c coor[int]) {
 	var new []item
 	if hasDown {
 		grass := plants(`\|/`, 5)
-		//TODO: randomly decide new color scheme
 		new = append(new, item{grass, randLerpColor(m.theme.a, m.theme.b)})
 	}
 	// add in ^

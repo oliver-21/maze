@@ -75,7 +75,7 @@ func keyMovement() (dx, dy int) {
 	return //
 }
 
-var batColor = color.RGBA{110, 94, 86, 255}
+var batColor = color.RGBA{145, 138, 138, 255}
 
 const batMovmentRatio = 1.2
 
@@ -156,7 +156,7 @@ func (p *player) Update(m *Maze) {
 	// update posible direction up to decision boundery
 	wingDx := p.speed * 5
 	const maxWingSpeed = maxSpeed * 5
-	// if dx != 0 || dy != 0 {
+	// if dx != 0 || dy != 0 { //TODO: add this back in but stop sliding
 	p.next = coor[int]{dx, dy}
 	// }
 

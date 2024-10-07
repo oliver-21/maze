@@ -1,18 +1,6 @@
 // TODO:
-// - add player and controler
 // - black out areas that are not yet reached
-// - If I have extra time: add coins mode and monster mode
-
-// Enemy: }<
-// Player: @<, \., ^'^, ^^', maby animate up and down with sine wave (delay for wing opposite direction going) move together at end of down strok as well?
-
 package main
-
-// $Env:GOOS = 'js'
-// $Env:GOARCH = 'wasm'
-// go build -o web/yourgame.wasm .
-// Remove-Item Env:GOOS
-// Remove-Item Env:GOARCH
 
 import (
 	"fmt"
@@ -84,7 +72,7 @@ func (m *Maze) messageUpdate() {
 func (m *Maze) Regenerate() {
 	message := "New Game"
 	if m.hasWon() {
-		message = "You reached the next level"
+		message = "Reached the next level"
 	}
 	*m = *genMaze()
 	m.setMessage(message, 2)
