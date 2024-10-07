@@ -63,9 +63,9 @@ func keyMovement() (dx, dy int) {
 	for _, e := range keyCoords {
 		if ebiten.IsKeyPressed(e.Key) {
 			dx += e.X
-			// dx = forceTo1(dx)
+			dx = forceTo1(dx)
 			dy += e.Y
-			// dy = forceTo1(dy)
+			dy = forceTo1(dy)
 		}
 	}
 	if dy != 0 {
@@ -93,7 +93,7 @@ func (p *player) Draw(screen *ebiten.Image, m *Maze) {
 }
 
 func isWithin(a, b, dx float64) bool {
-	return math.Abs(a-b) <= dx
+	return math.Abs(a-b) < dx
 }
 
 func move(pos *float64, goal int, movement float64) {
@@ -102,7 +102,7 @@ func move(pos *float64, goal int, movement float64) {
 	} else {
 		if *pos < float64(goal) {
 			*pos += movement
-		} else {
+		} else if *pos > float64(goal) {
 			*pos -= movement
 		}
 	}
@@ -110,6 +110,41 @@ func move(pos *float64, goal int, movement float64) {
 }
 
 const maxSpeed = 0.1
+
+func (m *Maze) coinFromLoc(place coor[int]) *cell {
+	return &m.area[place.y][place.x/cellLen]
+}
+
+func (m *Maze) hasCoin(place coor[int]) bool {
+	cell := m.coinFromLoc(place)
+	loc := place.x % cellLen
+	if loc < len(cell.isCoin) {
+		return cell.isCoin[loc]
+	}
+	return false
+}
+
+func (m *Maze) deleteCoin(place coor[int]) {
+	cell := m.coinFromLoc(place)
+	loc := place.x % cellLen
+	cell.isCoin[loc] = false
+}
+
+// DO NOT MODIFY
+var cellLen = len(cell{}.String())
+
+func (p *player) HandleCoins(m *Maze) {
+	curr := p.coor
+	curr.x *= float64(cellLen)
+	end := math.Ceil(curr.x + 2)
+	for i := int(math.Floor(curr.x)); i < int(end); i++ {
+		spot := coor[int]{int(curr.x), int(curr.y) + i}
+		if m.hasCoin(spot) {
+			m.deleteCoin(spot)
+			m.score++
+		}
+	}
+}
 
 func (p *player) Update(m *Maze) {
 	dx, dy := keyMovement()
@@ -137,7 +172,7 @@ func (p *player) Update(m *Maze) {
 		}
 	}
 	p.wingtime += wingDx
-	p.speed *= 1.05
+	p.speed *= 1.025
 	p.speed = min(p.speed, maxSpeed)
 
 	move(&p.coor.x, p.goal.x, p.speed)
@@ -145,15 +180,15 @@ func (p *player) Update(m *Maze) {
 
 	if p.coor.x == float64(p.goal.x) && p.coor.y == float64(p.goal.y) {
 		// m.area[(p.coor.y)][(p.coor.x)]
-		prev := p.dir
+		// prev := p.dir
 		p.dir = coor[int]{}
 		if m.canMoveInDir(coor[int]{int(p.coor.x), int(p.coor.y)}, p.next) {
 			p.dir = p.next
 			p.goal.x += p.dir.x
 			p.goal.y += p.dir.y
-			if p.dir != prev {
-				p.speed = 0.02
-			}
+			// if p.dir != prev {
+			// 	p.speed = 0.05
+			// }
 		}
 		p.next = coor[int]{}
 	}
@@ -179,5 +214,5 @@ func (m *Maze) canMoveInDir(coor coor[int], dir coor[int]) bool {
 }
 
 func (m *Maze) hasWon() bool {
-	return int(m.player.coor.x) == m.max.x
+	return m.score == m.numCoins
 }

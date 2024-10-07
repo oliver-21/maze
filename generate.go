@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	_ "embed"
+	"image/color"
+	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -191,6 +193,9 @@ func (m *Maze) exitIn(col int, row int) {
 func (m *Maze) addExits() {
 	m.exitIn(0, m.entry)
 	m.exitIn(len(m.area[0])-2, m.exit)
+	m.area[m.exit+1][len(m.area[0])-1].isCoin[1] = true
+	m.area[m.exit+1][len(m.area[0])-1].coinColor = color.RGBA{40, 29, 191, 255}
+	m.numCoins++
 }
 
 func genMaze() *Maze {
@@ -204,4 +209,8 @@ func genMaze() *Maze {
 	m.fillWithGrass()
 	m.AddCoins()
 	return &m
+}
+
+func wave(x float64) float64 {
+	return (math.Sin(x) + 1) / 2
 }

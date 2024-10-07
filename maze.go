@@ -15,6 +15,7 @@ package main
 // Remove-Item Env:GOARCH
 
 import (
+	"fmt"
 	"image"
 	"image/color"
 	"log"
@@ -42,20 +43,28 @@ type Maze struct {
 	theme colorTheme
 	area  []row
 	coor[int]
-	fedge, ledge  int
-	width, height int
-	scale         int
-	font          *text.GoTextFace
-	max           coor[int] // max position won't go past this
-	numCoins      int
-	player        player
-	entry, exit   int
+	fedge, ledge    int
+	width, height   int
+	scale           int
+	font            *text.GoTextFace
+	max             coor[int] // max position won't go past this
+	numCoins, score int
+
+	player      player
+	entry, exit int
 	playState
 	messages []message
 	message
+	offset float64
 }
 
 func (m *Maze) Update() error {
+	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
+		*m = *genMaze()
+		m.setMessage("New Game", 2)
+	}
+	m.offset += 1
+	m.player.HandleCoins(m)
 	m.player.Update(m)
 	if m.timout <= 0 {
 		if len(m.messages) != 0 {
@@ -64,6 +73,11 @@ func (m *Maze) Update() error {
 		} else {
 			m.message.string = ""
 		}
+	}
+
+	if m.playState == playing && m.hasWon() {
+		m.playState = won
+		m.setMessage("You Won", 5)
 	}
 	m.timout--
 	return nil
@@ -83,16 +97,11 @@ func (m *Maze) Draw(screen *ebiten.Image) {
 	// cy /= 2
 	// darkenOutside(screen, coor[float64]{pos.x + cx, pos.y + cy}, m.max)
 
-	switch m.playState {
-	case playing:
-		if m.hasWon() {
-			m.playState = won
-		}
-	case won:
-		m.setMessage("You Won", 5)
-	}
 	x, _ := m.textSize(cell{}.String())
 	m.drawText(screen, coor[float64]{x, 0}, m.getMessage(), color.RGBA{255, 255, 255, 255})
+	x, _ = m.blockToImageCoords(float64(m.max.x-1), 0)
+	m.drawText(screen, coor[float64]{x, 0}, fmt.Sprintf("%3v", m.score), color.RGBA{255, 255, 255, 255})
+
 }
 
 // TODO moving back and forth just randomly tends to keep us in one corner making larger mazes more and more expensive and this also makes mazes slightly more predictable

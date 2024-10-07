@@ -75,7 +75,7 @@ func (m *Maze) blockToImageCoords(x, y float64) (float64, float64) {
 
 func plants(chars string, outOf float64) string {
 	ans := ""
-	for i := 0; i < len(cell{}.String()); i++ {
+	for i := 0; i < cellLen; i++ {
 		if rand.Float64()*outOf < 1 {
 			ans += string(chars[rand.IntN(len(chars))])
 		} else {
@@ -144,6 +144,7 @@ type item struct {
 
 type internal struct {
 	isCoin     [2]bool
+	coinColor  color.RGBA
 	background []item
 }
 
@@ -174,12 +175,15 @@ func (m *Maze) DrawItems(screen *ebiten.Image, pos coor[int], int internal) {
 	for _, item := range int.background {
 		m.DrawItem(screen, pos, item)
 	}
-	var coinColor = color.RGBA{231, 245, 37, 255}
+	var coinColor = m.area[pos.y][pos.x].coinColor
+	x, y := m.blockToImageCoords(float64(pos.x), float64(pos.y))
 	if int.isCoin[0] {
-		m.DrawItem(screen, pos, item{"O", coinColor})
+		y := y - wave(float64(pos.x*3)+y+m.offset/15)*4
+		m.drawText(screen, coor[float64]{x, y}, "o", coinColor)
 	}
 	if int.isCoin[1] {
-		m.DrawItem(screen, pos, item{" O", coinColor})
+		y := y - wave(float64(pos.x*3+1)+y+m.offset/15)*4
+		m.drawText(screen, coor[float64]{x, y}, " o", coinColor)
 	}
 }
 
@@ -206,9 +210,12 @@ const coinFactor = 0.3
 func (m *Maze) AddCoins() {
 	points := m.spawnPoints()
 	shuffle(points)
-	m.numCoins = int(math.Sqrt(float64(len(points))) * coinFactor)
-	for _, e := range points[:m.numCoins] {
-		m.area[e.y][e.x].isCoin[rand.IntN(2)] = true
+	numCoins := int(math.Sqrt(float64(len(points))) * coinFactor)
+	for _, e := range points[:numCoins] {
+		coin := &m.area[e.y][e.x]
+		coin.isCoin[rand.IntN(2)] = true
+		coin.coinColor = color.RGBA{231, 245, 37, 255}
 		// fmt.Println(e.x, " ", e.y)
 	}
+	m.numCoins += numCoins
 }
