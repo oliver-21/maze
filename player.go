@@ -72,6 +72,10 @@ func keyMovement() (dx, dy int) {
 	if dy != 0 {
 		dx = 0
 	}
+	// if dy != 0 || dx != 0 {
+	// 	fmt.Println(dy, dx)
+	// }
+	// println(dx, dy)
 	return //
 }
 
@@ -135,7 +139,7 @@ func (p *player) HandleCoins(m *Maze) {
 }
 
 func move(pos *float64, goal int, movement float64) {
-	if isWithin(*pos, float64(goal), movement+0.1) {
+	if isWithin(*pos, float64(goal), movement/2) {
 		*pos = float64(goal)
 	} else {
 		if *pos < float64(goal) {
@@ -149,7 +153,7 @@ func move(pos *float64, goal int, movement float64) {
 
 func (p *player) Update(m *Maze) {
 	dx, dy := keyMovement()
-	if dx != 0 || dy != 0 {
+	if (dx != 0 || dy != 0) && m.playState == options {
 		m.playState = playing
 	}
 	// fmt.Println(dx, dy)
@@ -182,10 +186,10 @@ func (p *player) Update(m *Maze) {
 
 	move(&p.coor.x, p.goal.x, p.speed)
 	move(&p.coor.y, p.goal.y, p.speed)
-
 	if p.coor.x == float64(p.goal.x) && p.coor.y == float64(p.goal.y) {
 		// m.area[(p.coor.y)][(p.coor.x)]
 		// prev := p.dir
+		// orr := p.dir
 		p.dir = coor[int]{}
 		// if p.goal.x+p.dir.x <= 0 {
 		// 	return
@@ -194,10 +198,11 @@ func (p *player) Update(m *Maze) {
 			m.playState = end
 			p.next.x = 0
 		}
-		if m.canMoveInDir(coor[int]{int(p.coor.x), int(p.coor.y)}, p.next) {
+		if m.canMoveInDir(coor[int]{p.goal.x, p.goal.y}, p.next) {
 			// if p.next != p.dir {
 			// 	godump.Dump(p.goal)
 			// }
+			// fmt.Println(p.goal, orr, ":", p.coor)
 			p.dir = p.next
 			p.goal.x += p.dir.x
 			p.goal.y += p.dir.y

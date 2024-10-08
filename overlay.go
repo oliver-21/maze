@@ -108,10 +108,12 @@ func (m *Maze) genItems(c coor[int]) {
 	var new []item
 	if hasDown {
 		grassChance := 7.0
+		stalks := `\|/`
 		if cell.rainSorce != nil {
 			grassChance = 1.7
+			stalks = `\/`
 		}
-		grass := plants(`\|/`, grassChance)
+		grass := plants(stalks, grassChance)
 		new = append(new, item{grass, randLerpColor(m.theme.a, m.theme.b)})
 	}
 	// add in ^

@@ -16,7 +16,6 @@ type playState int
 
 const (
 	playing playState = iota
-	won
 	end
 	options
 )
@@ -44,10 +43,10 @@ type Maze struct {
 	playState
 	messages []message
 	message
-	offset    float64
-	prevEnter bool
-
-	rain []*rainSorce
+	offset      float64
+	prevEnter   bool
+	givenMesage bool
+	rain        []*rainSorce
 }
 
 func (m *Maze) allowEscape() {
@@ -107,9 +106,10 @@ func (m *Maze) Update() error {
 			}
 		}
 	}
-	if m.hasWon() {
-		m.setMessage("You Won", 5)
-		m.addMessage("Enter to replay", 5)
+	if m.hasWon() && !m.givenMesage {
+		m.setMessage("You Won", 3)
+		m.addMessage("Exit Maze or Hit Enter Key for next level", 4)
+		m.givenMesage = true
 	}
 	if m.playState == end && m.hasWon() {
 		m.Regenerate()
