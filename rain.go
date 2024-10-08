@@ -76,8 +76,11 @@ func (m *Maze) addRain() {
 	for i, line := range m.area[1:] {
 		for j := range line[1:int(m.max.x)] {
 			coo := coor[int]{j + 1, i + 1}
-			// none above
+			// no pipe above
 			if !m.canMoveInDir(coo, coor[int]{0, -1}) {
+				// mabey i could make this more styalised by only allowing rain in where there is a gap bellow as well
+				// the rain would then only be in longer tunnels.
+				// Hoever I think this would look less realistc for some reason
 				if rand.IntN(15) == 1 {
 					var isWater [2]bool
 					isWater[rand.IntN(len(isWater))] = true

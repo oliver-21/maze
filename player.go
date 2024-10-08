@@ -161,8 +161,9 @@ func (p *player) Update(m *Maze) {
 	// }
 
 	if p.dir.x != 0 {
-		p.tilt += float64(p.dir.x) * 0.7
+		p.tilt += float64(p.dir.x) * 0.3
 		p.tilt = forceTo1(p.tilt)
+		wingDx += maxWingSpeed / 3
 	} else {
 		p.tilt *= 0.9
 		// set to 1 if close enough

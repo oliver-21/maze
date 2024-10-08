@@ -125,7 +125,7 @@ func (g *Maze) Layout(outsideWidth, outsideHeight int) (int, int) {
 
 func (m *Maze) Draw(screen *ebiten.Image) {
 	m.drawRain(screen)
-	m.DrawStuff(screen)
+	m.DrawStuff(screen) // We do this before otherthings so grass doesn't overlay on top of pipes
 	text.Draw(screen, m.String(), m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
 	m.player.Draw(screen, m)
 	// pos := m.player.coor

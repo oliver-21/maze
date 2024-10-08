@@ -97,7 +97,7 @@ func basicMaze(width, height int) Maze {
 		},
 	}
 	m.addMessage("Maze Bat - By Oliver Day for Ludum Dare 56", 3)
-	m.addMessage("Enter to start a new game", 3)
+	m.addMessage("Hit enter for new level; WASD or Arrow keys to move", 3)
 	// m.addMessage("Requires Keyboard; Arrows or WASD to move; Enter to replay", 4)
 	m.player.set(0, m.entry+1)
 	for i := 1; i <= height; i++ {
