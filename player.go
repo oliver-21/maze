@@ -84,15 +84,15 @@ var batColor = color.RGBA{145, 138, 138, 255}
 const batMovmentRatio = 1.2
 
 func (p *player) Draw(screen *ebiten.Image, m *Maze) {
-	const tiltEffect = 1.7
-	const nearnessEffect = 0.7
+	const tiltEffect = 0.9
+	const nearnessEffect = 0.87
 	x, y := m.blockToImageCoords(p.x, p.y)
 	y += tiltEffect
 	movement := (math.Sin(p.wingtime) + 1) / 2
 	y += movement * 4
 	sep := movement * movement * batMovmentRatio
 	tilt := p.tilt * tiltEffect
-	tilt *= (batMovmentRatio - sep) * nearnessEffect
+	tilt *= (batMovmentRatio - sep*nearnessEffect)
 	m.drawText(screen, coor[float64]{x + sep, y - tilt}, "^", batColor)
 	m.drawText(screen, coor[float64]{x - sep, y + tilt}, " ^", batColor)
 }
@@ -139,7 +139,7 @@ func (p *player) HandleCoins(m *Maze) {
 }
 
 func move(pos *float64, goal int, movement float64) {
-	if isWithin(*pos, float64(goal), movement/2) {
+	if isWithin(*pos, float64(goal), movement) {
 		*pos = float64(goal)
 	} else {
 		if *pos < float64(goal) {
@@ -153,7 +153,7 @@ func move(pos *float64, goal int, movement float64) {
 
 func (p *player) Update(m *Maze) {
 	dx, dy := keyMovement()
-	if (dx != 0 || dy != 0) && m.playState == options {
+	if dx != 0 || dy != 0 {
 		m.playState = playing
 	}
 	// fmt.Println(dx, dy)
@@ -165,10 +165,11 @@ func (p *player) Update(m *Maze) {
 	// }
 
 	if p.dir.x != 0 {
-		p.tilt += float64(p.dir.x) * 0.3
+		p.tilt += float64(p.dir.x) * 0.1
 		p.tilt = forceTo1(p.tilt)
 		wingDx += maxWingSpeed / 3
 	} else {
+		// if we arn't moving along the x slowly untilt
 		p.tilt *= 0.9
 		// set to 1 if close enough
 		if p.tilt < 0.15 && p.tilt > -0.15 {
