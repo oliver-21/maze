@@ -77,7 +77,7 @@ func decode(file fs.File, name string) (s beep.StreamSeekCloser, format beep.For
 //go:embed theme.mp3
 var embedThemeFile embed.FS
 
-func getSound() *beep.Buffer {
+func getStreamer() (beep.StreamSeekCloser, beep.Format) {
 	name := "theme.mp3"
 	data, _ := embedThemeFile.Open(name)
 	streamer, format, err := decode(data, name)
@@ -85,23 +85,19 @@ func getSound() *beep.Buffer {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer streamer.Close()
-	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
-	buffer := beep.NewBuffer(format)
-	buffer.Append(streamer)
-	streamer.Close()
-	return buffer
+	return streamer, format
 }
 
 func soundtrack() {
-	buffer := getSound()
 	done := make(chan bool)
 	for {
-		segment := buffer.Streamer(0, buffer.Len())
-		speaker.Play(beep.Seq(segment, beep.Callback(func() {
+		streamer, format := getStreamer()
+		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+
+		speaker.Play(beep.Seq(streamer, beep.Callback(func() {
 			done <- true
 		})))
-		<-done // Wait for sound to finnish
+		<-done // Wait for sound to finish
+		streamer.Close()
 	}
 }

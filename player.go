@@ -84,7 +84,7 @@ var batColor = color.RGBA{145, 138, 138, 255}
 const batMovmentRatio = 1.2
 
 func (p *player) Draw(screen *ebiten.Image, m *Maze) {
-	const tiltEffect = 0.9
+	const tiltEffect = 1
 	const nearnessEffect = 0.87
 	x, y := m.blockToImageCoords(p.x, p.y)
 	y += tiltEffect
@@ -139,7 +139,7 @@ func (p *player) HandleCoins(m *Maze) {
 }
 
 func move(pos *float64, goal int, movement float64) {
-	if isWithin(*pos, float64(goal), movement) {
+	if isWithin(*pos, float64(goal), movement) { // 0.55?
 		*pos = float64(goal)
 	} else {
 		if *pos < float64(goal) {
@@ -165,7 +165,7 @@ func (p *player) Update(m *Maze) {
 	// }
 
 	if p.dir.x != 0 {
-		p.tilt += float64(p.dir.x) * 0.1
+		p.tilt += float64(p.dir.x) * 0.25
 		p.tilt = forceTo1(p.tilt)
 		wingDx += maxWingSpeed / 3
 	} else {
