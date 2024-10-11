@@ -184,10 +184,14 @@ func (p *player) Update(m *Maze) {
 	p.wingtime += wingDx
 	p.speed *= 1.025
 	p.speed = min(p.speed, maxSpeed)
+	if p.dir.x != 0 {
+		move(&p.coor.x, p.goal.x, p.speed)
+	} else if p.dir.y != 0 {
+		move(&p.coor.y, p.goal.y, p.speed)
+	}
+	// fmt.Println(p.dir)
 
-	move(&p.coor.x, p.goal.x, p.speed)
-	move(&p.coor.y, p.goal.y, p.speed)
-	if p.coor.x == float64(p.goal.x) && p.coor.y == float64(p.goal.y) {
+	if p.coor.x == math.Round(float64(p.goal.x)) && p.coor.y == math.Round(float64(p.goal.y)) {
 		// m.area[(p.coor.y)][(p.coor.x)]
 		// prev := p.dir
 		// orr := p.dir

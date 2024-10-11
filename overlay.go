@@ -110,7 +110,7 @@ func (m *Maze) genItems(c coor[int]) {
 		grassChance := 7.0
 		stalks := `\|/`
 		if cell.rainSorce != nil {
-			grassChance = 1.7
+			grassChance = 1.5
 			stalks = `\/`
 		}
 		grass := plants(stalks, grassChance)
