@@ -92,7 +92,7 @@ func (m *Maze) genItems(c coor[int]) {
 	cpy := *m
 	cpy.coor = c
 	var hasDown, hasUp bool
-	// println(c.x, ":", c.y)
+	// ln(c.x, ":", c.y)
 	for _, pos := range m.posDir() {
 		// fmt.Println(pos)
 		cpy.modify(pos, func(p *path) {

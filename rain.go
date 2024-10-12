@@ -92,11 +92,10 @@ func (m *Maze) addRain() {
 					m.area[coo.y][coo.x].rainSorce = stream
 					m.rain = append(m.rain, stream)
 				}
-			} else if coo.y > 0 {
-				sorce := m.area[coo.y-1][coo.x].rainSorce
-				m.area[coo.y][coo.x].rainSorce = sorce
-				if sorce != nil {
-					sorce.len += 1
+			} else {
+				m.area[coo.y][coo.x].rainSorce = prev
+				if prev != nil {
+					prev.len += 1
 				}
 			}
 		}

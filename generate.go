@@ -89,9 +89,13 @@ func basicMaze(width, height int) Maze {
 		},
 		ledge: 1,
 		scale: 22,
+		gameState: gameState{
+			level: 1, // default
+		},
 		entry: rand.Intn(height),
 		exit:  rand.Intn(height),
 		max:   coor[int]{width + 1, height + 1},
+		min:   coor[int]{1, 1},
 		player: player{
 			speed: 1,
 		},
@@ -119,10 +123,10 @@ func (m Maze) posDir() []coor[int] {
 		x   = m.x
 		y   = m.y
 	)
-	if x > 1 {
+	if x > m.min.x {
 		res = append(res, coor[int]{-1, 0})
 	}
-	if y > 1 {
+	if y > m.min.y {
 		res = append(res, coor[int]{0, -1})
 	}
 	if x < m.max.x-1 {
@@ -131,6 +135,9 @@ func (m Maze) posDir() []coor[int] {
 	if y < m.max.y-1 {
 		res = append(res, coor[int]{0, 1})
 	}
+	// if len(res) != 4 {
+	// 	fmt.Println(res)
+	// }
 	return res
 }
 
@@ -228,6 +235,11 @@ func (m *Maze) extraItems() {
 	}
 }
 
+func (m *Maze) widenRange() {
+	m.min = coor[int]{}
+	m.max = coor[int]{len(m.area[0]), len(m.area)}
+}
+
 func genMaze() *Maze {
 	m := basicMaze(20, 20)
 	for i := 0; i < 50000; i++ {
@@ -235,11 +247,12 @@ func genMaze() *Maze {
 		// time.Sleep(time.Second / 5)
 		// fmt.Println(m)
 	}
+	m.addExits()
 	m.addRain()
 	m.extraItems()
-	m.addExits()
 	m.fillWithGrass()
 	m.AddCoins()
+	m.widenRange()
 	return &m
 }
 

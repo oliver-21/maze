@@ -184,11 +184,11 @@ func (p *player) Update(m *Maze) {
 	p.wingtime += wingDx
 	p.speed *= 1.025
 	p.speed = min(p.speed, maxSpeed)
-	if p.dir.x != 0 {
-		move(&p.coor.x, p.goal.x, p.speed)
-	} else if p.dir.y != 0 {
-		move(&p.coor.y, p.goal.y, p.speed)
-	}
+	// if p.dir.x != 0 {
+	move(&p.coor.x, p.goal.x, p.speed)
+	// } else if p.dir.y != 0 {
+	move(&p.coor.y, p.goal.y, p.speed)
+	// }
 	// fmt.Println(p.dir)
 
 	if p.coor.x == math.Round(float64(p.goal.x)) && p.coor.y == math.Round(float64(p.goal.y)) {
@@ -225,7 +225,7 @@ func (m *Maze) canMoveInDir(coor coor[int], dir coor[int]) bool {
 	cpy.coor = coor
 	// println(c.x, ":", c.y)
 	canMove := false
-	for _, pos := range m.posDir() {
+	for _, pos := range cpy.posDir() {
 		if pos == dir {
 			cpy.modify(pos, func(pa *path) {
 				if pa.crossable {

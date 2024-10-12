@@ -25,6 +25,11 @@ type message struct {
 	string
 }
 
+type gameState struct {
+	prevEnter bool
+	level     int
+}
+
 // - Don't include maze size option - overcomplicating navigation. And no good way to deal with screen sizeing with larger mazes withough giving up resolution or trying to resize / spawn a new window which would be confusing to the player
 type Maze struct {
 	// mu    sync.Mutex
@@ -36,6 +41,7 @@ type Maze struct {
 	scale           int
 	font            *text.GoTextFace
 	max             coor[int] // max position won't go past this
+	min             coor[int]
 	numCoins, score int
 
 	player      player
@@ -43,8 +49,8 @@ type Maze struct {
 	playState
 	messages []message
 	message
-	offset      float64
-	prevEnter   bool
+	offset float64
+	gameState
 	givenMesage bool
 	rain        []*rainSorce
 }
@@ -74,12 +80,13 @@ func (m *Maze) messageUpdate() {
 
 func (m *Maze) Regenerate() {
 	message := "New Game"
-	enterPressed := m.prevEnter
+	prev := m.gameState
 	if m.hasWon() {
-		message = "Reached the next level"
+		m.level++
+		message = fmt.Sprintf("Reached level %v", m.level)
 	}
 	*m = *genMaze()
-	m.prevEnter = enterPressed
+	m.gameState = prev
 	m.setMessage(message, 2)
 }
 
@@ -135,7 +142,7 @@ func (m *Maze) Draw(screen *ebiten.Image) {
 	// darkenOutside(screen, coor[float64]{pos.x + cx, pos.y + cy}, m.max)
 	x, _ := m.textSize(cell{}.String())
 	m.drawText(screen, coor[float64]{x, 0}, m.getMessage(), color.RGBA{255, 255, 255, 255})
-	x, _ = m.blockToImageCoords(float64(m.max.x-1), 0)
+	x, _ = m.blockToImageCoords(float64(len(m.area[0])-2), 0)
 	m.drawText(screen, coor[float64]{x, 0}, fmt.Sprintf("%3v", m.score), color.RGBA{255, 255, 255, 255})
 }
 
