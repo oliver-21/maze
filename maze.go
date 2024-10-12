@@ -26,8 +26,8 @@ type message struct {
 }
 
 type gameState struct {
-	prevEnter bool
-	level     int
+	prevRestart bool
+	level       int
 }
 
 // - Don't include maze size option - overcomplicating navigation. And no good way to deal with screen sizeing with larger mazes withough giving up resolution or trying to resize / spawn a new window which would be confusing to the player
@@ -56,13 +56,13 @@ type Maze struct {
 }
 
 func (m *Maze) allowEscape() {
-	if ebiten.IsKeyPressed(ebiten.KeyEnter) {
-		if !m.prevEnter {
+	if ebiten.IsKeyPressed(ebiten.KeyEnter) || ebiten.IsKeyPressed(ebiten.KeyR) {
+		if !m.prevRestart {
 			m.playState = options
 		}
-		m.prevEnter = true
+		m.prevRestart = true
 	} else {
-		m.prevEnter = false
+		m.prevRestart = false
 	}
 }
 
@@ -80,14 +80,14 @@ func (m *Maze) messageUpdate() {
 
 func (m *Maze) Regenerate() {
 	message := "New Game"
-	prev := m.gameState
 	if m.hasWon() {
 		m.level++
 		message = fmt.Sprintf("Reached level %v", m.level)
 	}
+	prev := m.gameState
 	*m = *genMaze()
 	m.gameState = prev
-	m.setMessage(message, 2)
+	m.setMessage(message, 3)
 }
 
 func (m *Maze) Update() error {
