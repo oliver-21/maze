@@ -14,7 +14,7 @@ type player struct {
 	next coor[int]
 
 	speed     float64 // max 1.0
-	time      float64
+	time      int
 	tilt      float64
 	goal      coor[int]
 	wingtime  float64
@@ -191,7 +191,7 @@ func (p *player) Update(m *Maze) {
 	// }
 	// fmt.Println(p.dir)
 
-	if p.coor.x == math.Round(float64(p.goal.x)) && p.coor.y == math.Round(float64(p.goal.y)) {
+	if p.coor.x == float64(p.goal.x) && p.coor.y == float64(p.goal.y) {
 		// m.area[(p.coor.y)][(p.coor.x)]
 		// prev := p.dir
 		// orr := p.dir
@@ -217,7 +217,9 @@ func (p *player) Update(m *Maze) {
 			p.lastMoved = 3
 		}
 		p.next = coor[int]{}
+		m.area[p.goal.x][p.goal.y].timeEntered = p.time
 	}
+	p.time++
 }
 
 func (m *Maze) canMoveInDir(coor coor[int], dir coor[int]) bool {

@@ -27,7 +27,8 @@ func (r *rainSorce) draw(screen *ebiten.Image, m *Maze) {
 	place := image.Rect(int(x), int(y), int(x+dx), int(y+dy))
 	droplets := screen.SubImage(place).(*ebiten.Image)
 
-	m.drawText(droplets, coor[float64]{x, y - r.offset}, r.data, waterColor)
+	// _, offsetSize := m.blockToImageCoords(0, 1)
+	m.drawText(droplets, coor[float64]{x, y - r.offset*20}, r.data, waterColor)
 
 	// options := &ebiten.DrawImageOptions{}
 	// options.GeoM.Translate(x, y)
@@ -54,15 +55,14 @@ func genDrop(r *rainSorce) (ans string) {
 }
 
 func (r *rainSorce) updateRainSorce(m *Maze) {
-	if r.offset < 0 {
-		_, yDist := m.blockToImageCoords(0, 1)
+	if r.offset <= 0 {
 		r.data = genDrop(r) + "\n" + r.data
-		r.offset = yDist
+		r.offset = 1
 	}
 	if len(r.data)/3 > r.len {
 		r.data = r.data[:len(r.data)-1]
 	}
-	r.offset -= 1
+	r.offset -= float64(1) / 20
 }
 
 func (m *Maze) updateRain() {
@@ -72,7 +72,6 @@ func (m *Maze) updateRain() {
 }
 
 func (m *Maze) addRain() {
-	_, maxOffset := m.blockToImageCoords(0, 1)
 	for i, line := range m.area[1:] {
 		for j := range line[1:int(m.max.x)] {
 			coo := coor[int]{j + 1, i + 1}
@@ -88,7 +87,7 @@ func (m *Maze) addRain() {
 					if prev != nil && isWater == prev.isRain {
 						isWater[0], isWater[1] = isWater[1], isWater[0]
 					}
-					stream := &rainSorce{coo, isWater, 1, float64(rand.Float64() * maxOffset), ""}
+					stream := &rainSorce{coo, isWater, 1, rand.Float64(), ""}
 					m.area[coo.y][coo.x].rainSorce = stream
 					m.rain = append(m.rain, stream)
 				}

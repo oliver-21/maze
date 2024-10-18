@@ -88,16 +88,45 @@ func getStreamer() (beep.StreamSeekCloser, beep.Format) {
 	return streamer, format
 }
 
+// func soundtrack() {
+// 	done := make(chan bool)
+// 	for {
+// 		streamer, format := getStreamer()
+// 		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+
+// 		speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+// 			done <- true
+// 		})))
+// 		<-done // Wait for sound to finish
+// 		streamer.Close()
+// 	}
+// }
+
+func getSound() *beep.Buffer {
+	name := "theme.mp3"
+	data, _ := embedThemeFile.Open(name)
+	streamer, format, err := decode(data, name)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer streamer.Close()
+	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
+
+	buffer := beep.NewBuffer(format)
+	buffer.Append(streamer)
+	streamer.Close()
+	return buffer
+}
+
 func soundtrack() {
+	buffer := getSound()
 	done := make(chan bool)
 	for {
-		streamer, format := getStreamer()
-		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
-		speaker.Play(beep.Seq(streamer, beep.Callback(func() {
+		segment := buffer.Streamer(0, buffer.Len())
+		speaker.Play(beep.Seq(segment, beep.Callback(func() {
 			done <- true
 		})))
-		<-done // Wait for sound to finish
-		streamer.Close()
+		<-done
 	}
 }

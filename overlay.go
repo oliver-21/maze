@@ -61,7 +61,10 @@ func randLerpColor(a, b color.Color) color.RGBA {
 }
 
 func (m *Maze) textSize(s string) (float64, float64) {
-	return text.Measure(s, m.font, float64(m.scale))
+	return text.Measure(s, &text.GoTextFace{
+		Source: m.font,
+		Size:   m.scale * 0.9,
+	}, float64(m.scale))
 }
 
 func (m *Maze) blockToImageCoords(x, y float64) (float64, float64) {
@@ -173,10 +176,11 @@ type item struct {
 }
 
 type internal struct {
-	isCoin     [2]bool
-	coinColor  color.RGBA
-	rainSorce  *rainSorce
-	background []item
+	isCoin      [2]bool
+	coinColor   color.RGBA
+	rainSorce   *rainSorce
+	background  []item
+	timeEntered int
 }
 
 func (m *Maze) drawText(screen *ebiten.Image, pos coor[float64], str string, colour color.RGBA) {
@@ -187,10 +191,13 @@ func (m *Maze) drawText(screen *ebiten.Image, pos coor[float64], str string, col
 	text.Draw(
 		screen,
 		str,
-		m.font,
+		&text.GoTextFace{
+			Source: m.font,
+			Size:   m.scale * 0.9,
+		},
 		&text.DrawOptions{
 			LayoutOptions: text.LayoutOptions{
-				LineSpacing: float64(m.scale),
+				LineSpacing: m.scale,
 			},
 			DrawImageOptions: *place,
 		})

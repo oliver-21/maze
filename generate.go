@@ -53,7 +53,7 @@ func rowOnly(x int) row {
 var downOnly = fillerCell(false, true)
 
 func (m *Maze) UpdateSize() {
-	width, height := text.Measure(m.String(), m.font, float64(m.scale))
+	width, height := m.textSize(m.String())
 	m.width, m.height = int(width), int(height)
 }
 
@@ -83,12 +83,9 @@ func basicMaze(width, height int) Maze {
 		area:  []row{firstLine},
 		coor:  coor[int]{width, height},
 		theme: randColorRange(),
-		font: &text.GoTextFace{
-			Source: cascidiaMono,
-			Size:   20,
-		},
+		font:  cascidiaMono,
 		ledge: 1,
-		scale: 22,
+		scale: 40,
 		gameState: gameState{
 			level: 1, // default
 		},

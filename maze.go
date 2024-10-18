@@ -36,10 +36,11 @@ type Maze struct {
 	theme colorTheme
 	area  []row
 	coor[int]
-	fedge, ledge    int
-	width, height   int
-	scale           int
-	font            *text.GoTextFace
+	fedge, ledge  int
+	width, height int
+
+	scale           float64
+	font            *text.GoTextFaceSource
 	max             coor[int] // max position won't go past this
 	min             coor[int]
 	numCoins, score int
@@ -133,7 +134,8 @@ func (g *Maze) Layout(outsideWidth, outsideHeight int) (int, int) {
 func (m *Maze) Draw(screen *ebiten.Image) {
 	m.drawRain(screen)
 	m.DrawStuff(screen) // We do this before otherthings so grass doesn't overlay on top of pipes
-	text.Draw(screen, m.String(), m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
+	m.drawText(screen, coor[float64]{0, 0}, m.String(), color.RGBA{255, 255, 255, 255})
+	// text.Draw(screen, m.String(), m.font, &text.DrawOptions{LayoutOptions: text.LayoutOptions{LineSpacing: float64(m.scale)}})
 	m.player.Draw(screen, m)
 	// pos := m.player.coor
 	// cx, cy := m.textSize("^^")
@@ -154,6 +156,7 @@ func main() {
 	// 16x16, 32x32 and 48x48 , get("icon48.png")
 	ebiten.SetWindowIcon([]image.Image{get("icon.png")})
 	// fmt.Println(data.width, data.height) // TODO: remove
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	ebiten.SetWindowSize(data.width, data.height)
 	if err := ebiten.RunGame(data); err != nil {
